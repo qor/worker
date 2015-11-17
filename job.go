@@ -11,3 +11,7 @@ type Job struct {
 	Resource   admin.Resource
 	Permission roles.Permission
 }
+
+func (job *Job) Run() {
+	job.Handler(nil)
+}
