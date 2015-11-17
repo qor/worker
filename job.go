@@ -12,6 +12,6 @@ type Job struct {
 	Permission roles.Permission
 }
 
-func (job *Job) Run() {
-	job.Handler(nil)
+func (job *Job) Run(argument interface{}) error {
+	return job.Handler(argument)
 }
