@@ -20,12 +20,14 @@ Worker.RegisterJob(worker.Job{
   Resource: Admin.NewResource(&ImportProductArgument{}),
   Permission: roles.Permission,
   OnKill: func(record interface{}) error {},
+  Queue: Queue,
 })
 
-Worker.AddJob(QorJob)
+Worker.AddJob(QorJob) // queue -> Add
+
 Worker.RunJob(job.ID)
 Worker.KillJob(job.ID)
-Worker.PurgeJob(job.ID)
+Worker.DeleteJob(job.ID)
 ```
 
 ## Implement Queue
@@ -34,9 +36,9 @@ Worker.PurgeJob(job.ID)
 type Cron struct {
 }
 
-func (Cron) Enqueue(QorJob) error {
+func (Cron) Add(QorJob) error {
 }
 
-func (Cron) Purge(QorJob) error {
+func (Cron) Delete(QorJob) error {
 }
 ```

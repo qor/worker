@@ -11,31 +11,58 @@ func New(db *gorm.DB) *Worker {
 }
 
 type Worker struct {
-	DB   *gorm.DB
-	Jobs []*Job
+	Queue Queue
+	DB    *gorm.DB
+	Jobs  []*Job
 }
 
-func (worker *Worker) AddJob(job Job) error {
+func (worker *Worker) SetQueue(queue Queue) {
+	worker.Queue = queue
+}
+
+func (worker *Worker) RegisterJob(job Job) error {
 	worker.Jobs = append(worker.Jobs, &job)
 	return nil
 }
 
-type QorJob struct {
-	gorm.Model
-	Name     string
-	Status   string
-	Argument interface{}
-}
-
-func (worker *Worker) RunJob(id uint) error {
+func (worker *Worker) GetJob(jobID uint) (*QorJob, error) {
 	var qorJob QorJob
-	if !worker.DB.First(&qorJob, id).RecordNotFound() {
+
+	if err := worker.DB.First(&qorJob, jobID).Error; err == nil {
 		for _, job := range worker.Jobs {
 			if job.Name == qorJob.Name {
-				return job.Run(qorJob.Argument)
+				qorJob.Job = job
+				return &qorJob, nil
 			}
 		}
 	}
+	return nil, fmt.Errorf("failed to find job: %v", jobID)
+}
 
-	return fmt.Errorf("failed to find job: %v", id)
+func (worker *Worker) AddJob(QorJob) error {
+	return nil
+}
+
+func (worker *Worker) RunJob(jobID uint) error {
+	if qorJob, err := worker.GetJob(jobID); err == nil {
+		return qorJob.Job.Run(qorJob.Argument)
+	} else {
+		return err
+	}
+}
+
+func (worker *Worker) KillJob(jobID uint) error {
+	if qorJob, err := worker.GetJob(jobID); err == nil {
+		return qorJob.GetQueue().Kill(qorJob)
+	} else {
+		return err
+	}
+}
+
+func (worker *Worker) DeleteJob(jobID uint) error {
+	if qorJob, err := worker.GetJob(jobID); err == nil {
+		return qorJob.GetQueue().Delete(qorJob)
+	} else {
+		return err
+	}
 }
