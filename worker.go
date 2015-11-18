@@ -16,7 +16,7 @@ func New(config Config) *Worker {
 	}
 
 	// Auto Migration
-	// config.DB.AutoMigrate(config.Job)
+	config.DB.AutoMigrate(config.Job)
 
 	return &Worker{Config: &config}
 }
@@ -41,6 +41,7 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 
 	Admin := res.GetAdmin()
 	worker.JobResource = Admin.NewResource(worker.Config.Job)
+	worker.JobResource.IndexAttrs("-UpdatedBy")
 
 	router := Admin.GetRouter()
 	controller := workerController{Worker: worker}

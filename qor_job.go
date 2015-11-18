@@ -1,6 +1,9 @@
 package worker
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/audited"
+)
 
 type QorJobInterface interface {
 	GetJobName() string
@@ -16,7 +19,8 @@ type QorJob struct {
 	gorm.Model
 	Name     string
 	Status   string
-	Argument interface{} `sql:"size:65536"`
+	Argument interface{} `sql:"-"`
+	audited.AuditedModel
 }
 
 func (job *QorJob) GetJobName() string {
