@@ -1,11 +1,11 @@
 package worker
 
-import "github.com/jinzhu/gorm"
-
-type QorJob struct {
-	gorm.Model
-	Name     string
-	Status   string
-	Argument interface{}
-	*Job
+type QorJob interface {
+	SetArgument(argument interface{})
+	GetArgument() interface{}
+	SetStatus(string) error
+	GetStatus() string
+	SetJobName(string) error
+	GetJobName() string
+	GetJob() *Job
 }

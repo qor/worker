@@ -7,14 +7,20 @@ import (
 	"github.com/qor/qor/admin"
 )
 
-func New(db *gorm.DB) *Worker {
-	return &Worker{DB: db}
+func New(config Config) *Worker {
+	return &Worker{Config: &config}
+}
+
+type Config struct {
+	DB    *gorm.DB
+	Queue Queue
+	Job   interface{}
 }
 
 type Worker struct {
-	Queue Queue
-	DB    *gorm.DB
-	Jobs  []*Job
+	*Config
+	JobResource *admin.Resource
+	Jobs        []*Job
 }
 
 func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
@@ -36,14 +42,14 @@ func (worker *Worker) RegisterJob(job Job) error {
 	return nil
 }
 
-func (worker *Worker) GetJob(jobID uint) (*QorJob, error) {
+func (worker *Worker) GetJob(jobID uint) (QorJob, error) {
 	var qorJob QorJob
 
 	if err := worker.DB.First(&qorJob, jobID).Error; err == nil {
 		for _, job := range worker.Jobs {
-			if job.Name == qorJob.Name {
-				qorJob.Job = job
-				return &qorJob, nil
+			if job.Name == qorJob.GetJobName() {
+				// qorJob.Job = job
+				return qorJob, nil
 			}
 		}
 	}
@@ -56,7 +62,7 @@ func (worker *Worker) AddJob(QorJob) error {
 
 func (worker *Worker) RunJob(jobID uint) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
-		return qorJob.Job.Run(qorJob.Argument)
+		return qorJob.GetJob().Run(qorJob.GetArgument())
 	} else {
 		return err
 	}
@@ -64,7 +70,7 @@ func (worker *Worker) RunJob(jobID uint) error {
 
 func (worker *Worker) KillJob(jobID uint) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
-		return qorJob.GetQueue().Kill(qorJob)
+		return qorJob.GetJob().GetQueue().Kill(qorJob)
 	} else {
 		return err
 	}
@@ -72,7 +78,7 @@ func (worker *Worker) KillJob(jobID uint) error {
 
 func (worker *Worker) DeleteJob(jobID uint) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
-		return qorJob.GetQueue().Delete(qorJob)
+		return qorJob.GetJob().GetQueue().Delete(qorJob)
 	} else {
 		return err
 	}
