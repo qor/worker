@@ -8,6 +8,13 @@ import (
 )
 
 func New(config Config) *Worker {
+	if config.Job == nil {
+		config.Job = &QorJob{}
+	}
+
+	// Auto Migration
+	config.DB.AutoMigrate(config.Job)
+
 	return &Worker{Config: &config}
 }
 
@@ -24,6 +31,8 @@ type Worker struct {
 }
 
 func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
+	worker.JobResource = res.GetAdmin().NewResource(worker.Config.Job)
+
 	router := res.GetAdmin().GetRouter()
 	controller := workerController{Worker: worker}
 
