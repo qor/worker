@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/admin"
 )
 
 func New(db *gorm.DB) *Worker {
@@ -14,6 +15,16 @@ type Worker struct {
 	Queue Queue
 	DB    *gorm.DB
 	Jobs  []*Job
+}
+
+func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
+	router := res.GetAdmin().GetRouter()
+	controller := workerController{Worker: worker}
+
+	router.Get("/"+res.ToParam(), controller.index)
+	router.Get("/"+res.ToParam()+"/.*$", controller.show)
+	router.Post("/"+res.ToParam()+"/.*/run$", controller.runJob)
+	router.Post("/"+res.ToParam()+"/.*/kill$", controller.killJob)
 }
 
 func (worker *Worker) SetQueue(queue Queue) {
