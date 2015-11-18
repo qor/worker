@@ -16,7 +16,7 @@ type QorJob struct {
 	gorm.Model
 	Name     string
 	Status   string
-	Argument interface{}
+	Argument interface{} `sql:"size:65536"`
 }
 
 func (job *QorJob) GetJobName() string {

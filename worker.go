@@ -2,6 +2,9 @@ package worker
 
 import (
 	"fmt"
+	"os"
+	"path"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/admin"
@@ -13,7 +16,7 @@ func New(config Config) *Worker {
 	}
 
 	// Auto Migration
-	config.DB.AutoMigrate(config.Job)
+	// config.DB.AutoMigrate(config.Job)
 
 	return &Worker{Config: &config}
 }
@@ -31,9 +34,15 @@ type Worker struct {
 }
 
 func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
-	worker.JobResource = res.GetAdmin().NewResource(worker.Config.Job)
+	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/worker/views"))
+	}
+	res.UseTheme("worker")
 
-	router := res.GetAdmin().GetRouter()
+	Admin := res.GetAdmin()
+	worker.JobResource = Admin.NewResource(worker.Config.Job)
+
+	router := Admin.GetRouter()
 	controller := workerController{Worker: worker}
 
 	router.Get("/"+res.ToParam(), controller.index)
