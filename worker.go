@@ -14,7 +14,7 @@ func New(config Config) *Worker {
 type Config struct {
 	DB    *gorm.DB
 	Queue Queue
-	Job   interface{}
+	Job   QorJobInterface
 }
 
 type Worker struct {
@@ -42,8 +42,8 @@ func (worker *Worker) RegisterJob(job Job) error {
 	return nil
 }
 
-func (worker *Worker) GetJob(jobID uint) (QorJob, error) {
-	var qorJob QorJob
+func (worker *Worker) GetJob(jobID uint) (QorJobInterface, error) {
+	var qorJob QorJobInterface
 
 	if err := worker.DB.First(&qorJob, jobID).Error; err == nil {
 		for _, job := range worker.Jobs {
@@ -56,7 +56,7 @@ func (worker *Worker) GetJob(jobID uint) (QorJob, error) {
 	return nil, fmt.Errorf("failed to find job: %v", jobID)
 }
 
-func (worker *Worker) AddJob(QorJob) error {
+func (worker *Worker) AddJob(QorJobInterface) error {
 	return nil
 }
 

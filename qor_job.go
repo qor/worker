@@ -1,6 +1,6 @@
 package worker
 
-type QorJob interface {
+type QorJobInterface interface {
 	SetArgument(argument interface{})
 	GetArgument() interface{}
 	SetStatus(string) error
