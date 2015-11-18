@@ -46,10 +46,11 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 	router := Admin.GetRouter()
 	controller := workerController{Worker: worker}
 
-	router.Get("/"+res.ToParam(), controller.index)
-	router.Get("/"+res.ToParam()+"/.*$", controller.show)
-	router.Post("/"+res.ToParam()+"/.*/run$", controller.runJob)
-	router.Post("/"+res.ToParam()+"/.*/kill$", controller.killJob)
+	router.Get("/"+res.ToParam()+"/new", controller.New)
+	router.Get("/"+res.ToParam(), controller.Index)
+	router.Get("/"+res.ToParam()+"/.*$", controller.Show)
+	router.Post("/"+res.ToParam()+"/.*/run$", controller.RunJob)
+	router.Post("/"+res.ToParam()+"/.*/kill$", controller.KillJob)
 }
 
 func (worker *Worker) SetQueue(queue Queue) {
