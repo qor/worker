@@ -6,16 +6,16 @@ type workerController struct {
 	*Worker
 }
 
-func (workerController) Index(context *admin.Context) {
-	context.Execute("index", nil)
+func (wc workerController) Index(context *admin.Context) {
+	context.Execute("index", wc.Worker)
 }
 
-func (workerController) Show(context *admin.Context) {
-	context.Execute("show", nil)
+func (wc workerController) Show(context *admin.Context) {
+	context.Execute("show", wc.Worker)
 }
 
-func (workerController) New(context *admin.Context) {
-	context.Execute("new", nil)
+func (wc workerController) New(context *admin.Context) {
+	context.Execute("new", wc.Worker)
 }
 
 func (workerController) AddJob(context *admin.Context) {

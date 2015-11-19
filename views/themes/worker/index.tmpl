@@ -7,10 +7,10 @@
 </div>
 
 <div class="qor-page__body">
-  {{$jobs := new_resource_context .Resource.Value.JobResource}}
+  {{$jobContext := new_resource_context .Result.JobResource}}
 
   <div class="qor-table-container">
-    {{$jobs.Render "index/table" $jobs.FindMany}}
+    {{$jobContext.Render "index/table" $jobContext.FindMany}}
   </div>
 
   {{if has_create_permission .Resource}}

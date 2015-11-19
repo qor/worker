@@ -1,5 +1,7 @@
 <div class="qor-page__body">
   <div class="qor-form-container">
-    new job
+    {{range $job := .Result.Jobs}}
+      {{dt (print "worker.jobs." $job.Name) $job.Name}}
+    {{end}}
   </div>
 </div>
