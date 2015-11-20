@@ -28,6 +28,7 @@ func (wc workerController) AddJob(context *admin.Context) {
 	jobResourceult := jobResource.NewStruct()
 	if context.AddError(jobResource.Decode(context.Context, jobResourceult)); !context.HasError() {
 		context.AddError(jobResource.CallSave(jobResourceult, context.Context))
+		wc.Worker.AddJob(jobResourceult.(QorJobInterface))
 	}
 
 	http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path), http.StatusFound)

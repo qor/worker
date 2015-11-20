@@ -44,22 +44,27 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 
 	Admin := res.GetAdmin()
 	worker.JobResource = Admin.NewResource(worker.Config.Job)
-	worker.JobResource.IndexAttrs("-UpdatedBy")
+	worker.JobResource.Meta(&admin.Meta{Name: "Name", Valuer: func(record interface{}, context *qor.Context) interface{} {
+		return record.(QorJobInterface).GetJobName()
+	}})
+	worker.JobResource.IndexAttrs("ID", "Name", "Status")
 
 	// configure jobs
 	for _, job := range worker.Jobs {
 		if job.Resource == nil {
 			job.Resource = Admin.NewResource(worker.JobResource.Value)
-			job.Resource.Meta(&admin.Meta{
-				Name: "Name",
-				Valuer: func(interface{}, *qor.Context) interface{} {
-					return job.Name
-				},
-				Setter: func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-					resource.(QorJobInterface).SetJobName(utils.ToString(metaValue.Value))
-				},
-			})
 		}
+
+		job.Resource.Meta(&admin.Meta{
+			Name: "_job_name",
+			Type: "hidden",
+			Valuer: func(interface{}, *qor.Context) interface{} {
+				return job.Name
+			},
+			Setter: func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
+				resource.(QorJobInterface).SetJobName(utils.ToString(metaValue.Value))
+			},
+		})
 	}
 
 	// configure routes
