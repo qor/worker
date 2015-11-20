@@ -2,6 +2,7 @@ package worker
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/admin"
 	"github.com/qor/qor/audited"
 )
 
@@ -10,25 +11,25 @@ type QorJobInterface interface {
 	SetJobName(string)
 	GetStatus() string
 	SetStatus(string)
-	GetArgument() interface{}
-	SetArgument(argument interface{})
+	SetJob(*Job)
 	GetJob() *Job
+	admin.SerializeArgumentInterface
 }
 
 type QorJob struct {
 	gorm.Model
-	Name     string
-	Status   string
-	Argument interface{} `sql:"-"`
+	Status string
 	audited.AuditedModel
+	admin.SerializeArgument
+	Job *Job `sql:"-"`
 }
 
 func (job *QorJob) GetJobName() string {
-	return job.Name
+	return job.Kind
 }
 
 func (job *QorJob) SetJobName(name string) {
-	job.Name = name
+	job.Kind = name
 }
 
 func (job *QorJob) GetStatus() string {
@@ -39,14 +40,17 @@ func (job *QorJob) SetStatus(status string) {
 	job.Status = status
 }
 
-func (job *QorJob) GetArgument() interface{} {
-	return job.Argument
-}
-
-func (job *QorJob) SetArgument(argument interface{}) {
-	job.Argument = argument
+func (job *QorJob) SetJob(j *Job) {
+	job.Job = j
 }
 
 func (job *QorJob) GetJob() *Job {
+	return job.Job
+}
+
+func (job *QorJob) GetSerializeArgumentResource() *admin.Resource {
+	if job.Job != nil {
+		return job.Job.Worker.JobResource
+	}
 	return nil
 }

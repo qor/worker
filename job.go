@@ -8,9 +8,9 @@ import (
 type Job struct {
 	Name       string
 	Handler    func(record interface{}) error
-	Resource   admin.Resource
 	Permission roles.Permission
 	Queue      Queue
+	Resource   *admin.Resource
 	Worker     *Worker
 }
 

@@ -7,7 +7,10 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/resource"
+	"github.com/qor/qor/utils"
 )
 
 func New(config Config) *Worker {
@@ -43,6 +46,23 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 	worker.JobResource = Admin.NewResource(worker.Config.Job)
 	worker.JobResource.IndexAttrs("-UpdatedBy")
 
+	// configure jobs
+	for _, job := range worker.Jobs {
+		if job.Resource == nil {
+			job.Resource = Admin.NewResource(worker.JobResource.Value)
+			job.Resource.Meta(&admin.Meta{
+				Name: "Name",
+				Valuer: func(interface{}, *qor.Context) interface{} {
+					return job.Name
+				},
+				Setter: func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
+					resource.(QorJobInterface).SetJobName(utils.ToString(metaValue.Value))
+				},
+			})
+		}
+	}
+
+	// configure routes
 	router := Admin.GetRouter()
 	controller := workerController{Worker: worker}
 
@@ -69,7 +89,7 @@ func (worker *Worker) GetJob(jobID uint) (QorJobInterface, error) {
 	if err := worker.DB.First(&qorJob, jobID).Error; err == nil {
 		for _, job := range worker.Jobs {
 			if job.Name == qorJob.GetJobName() {
-				// qorJob.Job = job
+				qorJob.SetJob(job)
 				return qorJob, nil
 			}
 		}
@@ -83,7 +103,7 @@ func (worker *Worker) AddJob(QorJobInterface) error {
 
 func (worker *Worker) RunJob(jobID uint) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
-		return qorJob.GetJob().Run(qorJob.GetArgument())
+		return qorJob.GetJob().Run(qorJob.GetSerializeArgument(qorJob))
 	} else {
 		return err
 	}

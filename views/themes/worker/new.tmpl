@@ -4,7 +4,7 @@
     {{range $job := .Result.Jobs}}
       {{dt (print "worker.jobs." $job.Name) $job.Name}}
       <form action="{{url_for $resource}}" method="POST">
-        <input type="hidden" name="name" value="{{$job.Name}}">
+        {{render_form $job.Resource.NewStruct (new_metas $job.Resource)}}
 
         <div class="qor-form__actions">
           <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{dt "worker.run_job" "Run"}}</button>
