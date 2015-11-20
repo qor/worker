@@ -94,7 +94,7 @@ func (worker *Worker) GetJob(jobID uint) (QorJobInterface, error) {
 	if err := worker.DB.First(&qorJob, jobID).Error; err == nil {
 		for _, job := range worker.Jobs {
 			if job.Name == qorJob.GetJobName() {
-				qorJob.SetJob(job)
+				qorJob.SetWorker(worker)
 				return qorJob, nil
 			}
 		}

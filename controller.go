@@ -25,7 +25,7 @@ func (wc workerController) New(context *admin.Context) {
 
 func (wc workerController) AddJob(context *admin.Context) {
 	jobResource := wc.Worker.JobResource
-	jobResourceult := jobResource.NewStruct()
+	jobResourceult := jobResource.NewStruct().(QorJobInterface)
 	if context.AddError(jobResource.Decode(context.Context, jobResourceult)); !context.HasError() {
 		context.AddError(jobResource.CallSave(jobResourceult, context.Context))
 		wc.Worker.AddJob(jobResourceult.(QorJobInterface))
