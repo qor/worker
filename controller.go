@@ -36,6 +36,8 @@ func (wc workerController) AddJob(context *admin.Context) {
 	result.SetJob(job)
 
 	if context.AddError(jobResource.Decode(context.Context, result)); !context.HasError() {
+		// ensure job name is correct
+		result.SetJob(job)
 		context.AddError(jobResource.CallSave(result, context.Context))
 		wc.Worker.AddJob(result)
 	}

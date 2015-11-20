@@ -8,7 +8,6 @@ import (
 
 type QorJobInterface interface {
 	GetJobName() string
-	SetJobName(string)
 	GetStatus() string
 	SetStatus(string)
 	GetJob() *Job
@@ -28,10 +27,6 @@ func (job *QorJob) GetJobName() string {
 	return job.Kind
 }
 
-func (job *QorJob) SetJobName(name string) {
-	job.Kind = name
-}
-
 func (job *QorJob) GetStatus() string {
 	return job.Status
 }
@@ -41,6 +36,7 @@ func (job *QorJob) SetStatus(status string) {
 }
 
 func (job *QorJob) SetJob(j *Job) {
+	job.Kind = j.Name
 	job.Job = j
 }
 
