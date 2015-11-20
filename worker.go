@@ -9,8 +9,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
-	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
 )
 
 func New(config Config) *Worker {
@@ -54,17 +52,6 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 		if job.Resource == nil {
 			job.Resource = Admin.NewResource(worker.JobResource.Value)
 		}
-
-		job.Resource.Meta(&admin.Meta{
-			Name: "_job_name",
-			Type: "hidden",
-			Valuer: func(interface{}, *qor.Context) interface{} {
-				return job.Name
-			},
-			Setter: func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-				resource.(QorJobInterface).SetJobName(utils.ToString(metaValue.Value))
-			},
-		})
 	}
 
 	// configure routes
@@ -84,6 +71,7 @@ func (worker *Worker) SetQueue(queue Queue) {
 }
 
 func (worker *Worker) RegisterJob(job Job) error {
+	job.Worker = worker
 	worker.Jobs = append(worker.Jobs, &job)
 	return nil
 }
@@ -94,7 +82,7 @@ func (worker *Worker) GetJob(jobID uint) (QorJobInterface, error) {
 	if err := worker.DB.First(&qorJob, jobID).Error; err == nil {
 		for _, job := range worker.Jobs {
 			if job.Name == qorJob.GetJobName() {
-				qorJob.SetWorker(worker)
+				qorJob.SetJob(job)
 				return qorJob, nil
 			}
 		}

@@ -25,10 +25,19 @@ func (wc workerController) New(context *admin.Context) {
 
 func (wc workerController) AddJob(context *admin.Context) {
 	jobResource := wc.Worker.JobResource
-	jobResourceult := jobResource.NewStruct().(QorJobInterface)
-	if context.AddError(jobResource.Decode(context.Context, jobResourceult)); !context.HasError() {
-		context.AddError(jobResource.CallSave(jobResourceult, context.Context))
-		wc.Worker.AddJob(jobResourceult.(QorJobInterface))
+	result := jobResource.NewStruct().(QorJobInterface)
+
+	var job *Job
+	for _, j := range wc.Worker.Jobs {
+		if j.Name == context.Request.Form.Get("job_name") {
+			job = j
+		}
+	}
+	result.SetJob(job)
+
+	if context.AddError(jobResource.Decode(context.Context, result)); !context.HasError() {
+		context.AddError(jobResource.CallSave(result, context.Context))
+		wc.Worker.AddJob(result)
 	}
 
 	http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path), http.StatusFound)

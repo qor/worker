@@ -7,12 +7,12 @@ import (
 )
 
 type QorJobInterface interface {
-	SetWorker(*Worker)
 	GetJobName() string
 	SetJobName(string)
 	GetStatus() string
 	SetStatus(string)
 	GetJob() *Job
+	SetJob(*Job)
 	admin.SerializeArgumentInterface
 }
 
@@ -21,7 +21,7 @@ type QorJob struct {
 	Status string
 	audited.AuditedModel
 	admin.SerializeArgument
-	Worker *Worker `sql:"-"`
+	Job *Job `sql:"-"`
 }
 
 func (job *QorJob) GetJobName() string {
@@ -40,17 +40,13 @@ func (job *QorJob) SetStatus(status string) {
 	job.Status = status
 }
 
-func (job *QorJob) SetWorker(worker *Worker) {
-	job.Worker = worker
+func (job *QorJob) SetJob(j *Job) {
+	job.Job = j
 }
 
 func (job *QorJob) GetJob() *Job {
-	if job.Worker != nil {
-		for _, j := range job.Worker.Jobs {
-			if j.Name == job.GetJobName() {
-				return j
-			}
-		}
+	if job.Job != nil {
+		return job.Job
 	}
 	return nil
 }
