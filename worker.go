@@ -53,6 +53,13 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 	worker.JobResource.IndexAttrs("ID", "Name", "Status")
 	worker.JobResource.Permission = roles.Allow(roles.Update, "no_body").Allow(roles.Delete, "no_body")
 
+	for _, status := range []string{"new", "running", "done", "exception"} {
+		var status = status
+		worker.JobResource.Scope(&admin.Scope{Name: status, Handle: func(db *gorm.DB, ctx *qor.Context) *gorm.DB {
+			return db.Where("status = ?", status)
+		}})
+	}
+
 	// configure jobs
 	for _, job := range worker.Jobs {
 		if job.Resource == nil {
