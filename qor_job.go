@@ -17,7 +17,7 @@ type QorJobInterface interface {
 
 type QorJob struct {
 	gorm.Model
-	Status string
+	Status string `sql:"default:'new'"`
 	audited.AuditedModel
 	admin.SerializeArgument
 	Job *Job `sql:"-"`

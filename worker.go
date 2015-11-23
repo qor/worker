@@ -9,6 +9,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/roles"
 )
 
 func New(config Config) *Worker {
@@ -46,6 +47,7 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 		return record.(QorJobInterface).GetJobName()
 	}})
 	worker.JobResource.IndexAttrs("ID", "Name", "Status")
+	worker.JobResource.Permission = roles.Allow(roles.Update, "no_body").Allow(roles.Delete, "no_body")
 
 	// configure jobs
 	for _, job := range worker.Jobs {
