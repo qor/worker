@@ -1,12 +1,15 @@
 package worker
 
 import (
+	"fmt"
+
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/audited"
 )
 
 type QorJobInterface interface {
+	GetJobID() string
 	GetJobName() string
 	GetStatus() string
 	SetStatus(string)
@@ -21,6 +24,10 @@ type QorJob struct {
 	audited.AuditedModel
 	admin.SerializeArgument
 	Job *Job `sql:"-"`
+}
+
+func (job QorJob) GetJobID() string {
+	return fmt.Sprint(job.ID)
 }
 
 func (job *QorJob) GetJobName() string {
