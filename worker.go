@@ -129,9 +129,24 @@ func (worker *Worker) AddJob(qorJob QorJobInterface) error {
 	return worker.Queue.Add(qorJob)
 }
 
+func (worker *Worker) UpdateJobStatus(qorJob QorJobInterface, status string) error {
+	context := worker.Admin.NewContext(nil, nil).Context
+	qorJob.SetStatus(status)
+	return worker.JobResource.CallSave(qorJob, context)
+}
+
 func (worker *Worker) RunJob(jobID uint) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
-		return qorJob.GetJob().Run(qorJob.GetSerializeArgument(qorJob))
+		if err := worker.UpdateJobStatus(qorJob, "running"); err == nil {
+			if err := qorJob.GetJob().Run(qorJob.GetSerializeArgument(qorJob)); err == nil {
+				return worker.UpdateJobStatus(qorJob, "done")
+			} else {
+				worker.UpdateJobStatus(qorJob, "exception")
+				return err
+			}
+		} else {
+			return err
+		}
 	} else {
 		return err
 	}
