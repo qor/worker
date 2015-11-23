@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path"
@@ -12,25 +13,27 @@ import (
 	"github.com/qor/qor/roles"
 )
 
-func New(config Config) *Worker {
-	if config.Job == nil {
-		config.Job = &QorJob{}
+func New(config ...Config) *Worker {
+	var cfg Config
+	if len(config) > 0 {
+		cfg = config[0]
 	}
 
-	if config.Queue == nil {
-		config.Queue = NewCronQueue()
+	if cfg.Job == nil {
+		cfg.Job = &QorJob{}
 	}
 
-	// Auto Migration
-	config.DB.AutoMigrate(config.Job)
+	if cfg.Queue == nil {
+		cfg.Queue = NewCronQueue()
+	}
 
-	return &Worker{Config: &config}
+	return &Worker{Config: &cfg}
 }
 
 type Config struct {
-	DB    *gorm.DB
 	Queue Queue
 	Job   QorJobInterface
+	Admin *admin.Admin
 }
 
 type Worker struct {
@@ -45,8 +48,8 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 	}
 	res.UseTheme("worker")
 
-	Admin := res.GetAdmin()
-	worker.JobResource = Admin.NewResource(worker.Config.Job)
+	worker.Admin = res.GetAdmin()
+	worker.JobResource = worker.Admin.NewResource(worker.Config.Job)
 	worker.JobResource.Meta(&admin.Meta{Name: "Name", Valuer: func(record interface{}, context *qor.Context) interface{} {
 		return record.(QorJobInterface).GetJobName()
 	}})
@@ -60,15 +63,30 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 		}})
 	}
 
-	// configure jobs
+	// Auto Migration
+	worker.Admin.Config.DB.AutoMigrate(worker.Config.Job)
+
+	// Configure jobs
 	for _, job := range worker.Jobs {
 		if job.Resource == nil {
-			job.Resource = Admin.NewResource(worker.JobResource.Value)
+			job.Resource = worker.Admin.NewResource(worker.JobResource.Value)
+		}
+	}
+
+	// Parse job
+	var qorJobID = flag.Int("qor-job", 0, "Qor Job ID")
+	flag.Parse()
+	if qorJobID != nil && *qorJobID != 0 {
+		if err := worker.RunJob(uint(*qorJobID)); err == nil {
+			os.Exit(0)
+		} else {
+			fmt.Println(err)
+			os.Exit(1)
 		}
 	}
 
 	// configure routes
-	router := Admin.GetRouter()
+	router := worker.Admin.GetRouter()
 	controller := workerController{Worker: worker}
 
 	router.Get("/"+res.ToParam()+"/new", controller.New)
@@ -90,9 +108,13 @@ func (worker *Worker) RegisterJob(job Job) error {
 }
 
 func (worker *Worker) GetJob(jobID uint) (QorJobInterface, error) {
-	var qorJob QorJobInterface
+	qorJob := worker.JobResource.NewStruct().(QorJobInterface)
 
-	if err := worker.DB.First(&qorJob, jobID).Error; err == nil {
+	context := worker.Admin.NewContext(nil, nil)
+	context.ResourceID = fmt.Sprint(jobID)
+	context.Resource = worker.JobResource
+
+	if err := worker.JobResource.FindOneHandler(qorJob, nil, context.Context); err == nil {
 		for _, job := range worker.Jobs {
 			if job.Name == qorJob.GetJobName() {
 				qorJob.SetJob(job)
