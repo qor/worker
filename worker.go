@@ -53,7 +53,7 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 	worker.JobResource.Meta(&admin.Meta{Name: "Name", Valuer: func(record interface{}, context *qor.Context) interface{} {
 		return record.(QorJobInterface).GetJobName()
 	}})
-	worker.JobResource.IndexAttrs("ID", "Name", "Status")
+	worker.JobResource.IndexAttrs("ID", "Name", "Status", "CreatedAt")
 	worker.JobResource.Permission = roles.Allow(roles.Update, "no_body").Allow(roles.Delete, "no_body")
 
 	for _, status := range []string{"new", "running", "done", "exception"} {
