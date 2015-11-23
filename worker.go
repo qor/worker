@@ -17,6 +17,10 @@ func New(config Config) *Worker {
 		config.Job = &QorJob{}
 	}
 
+	if config.Queue == nil {
+		config.Queue = NewCronQueue()
+	}
+
 	// Auto Migration
 	config.DB.AutoMigrate(config.Job)
 
@@ -92,8 +96,8 @@ func (worker *Worker) GetJob(jobID uint) (QorJobInterface, error) {
 	return nil, fmt.Errorf("failed to find job: %v", jobID)
 }
 
-func (worker *Worker) AddJob(QorJobInterface) error {
-	return nil
+func (worker *Worker) AddJob(qorJob QorJobInterface) error {
+	return worker.Queue.Add(qorJob)
 }
 
 func (worker *Worker) RunJob(jobID uint) error {

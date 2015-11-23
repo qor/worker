@@ -5,7 +5,7 @@ import "github.com/qor/worker"
 type Cron struct {
 }
 
-func New() *Cron {
+func NewCronQueue() *Cron {
 	return &Cron{}
 }
 
