@@ -16,10 +16,10 @@ type QorJobInterface interface {
 	GetJob() *Job
 	SetJob(*Job)
 
-	SetProgress(uint)
-	SetProgressText(string)
-	AddLog(string)
-	AddErrorRow([]TableCell)
+	SetProgress(uint) error
+	SetProgressText(string) error
+	AddLog(string) error
+	AddErrorRow([]TableCell) error
 
 	admin.SerializeArgumentInterface
 }
@@ -78,14 +78,24 @@ func (job *QorJob) GetSerializeArgumentResource() *admin.Resource {
 	return nil
 }
 
-func (job *QorJob) SetProgress(uint) {
+func (job *QorJob) SetProgress(progress uint) error {
+	worker := job.GetJob().Worker
+	context := worker.Admin.NewContext(nil, nil).Context
+	job.Progress = progress
+	return worker.JobResource.CallSave(job, context)
 }
 
-func (job *QorJob) SetProgressText(string) {
+func (job *QorJob) SetProgressText(str string) error {
+	worker := job.GetJob().Worker
+	context := worker.Admin.NewContext(nil, nil).Context
+	job.ProgressText = str
+	return worker.JobResource.CallSave(job, context)
 }
 
-func (job *QorJob) AddLog(string) {
+func (job *QorJob) AddLog(string) error {
+	return nil
 }
 
-func (job *QorJob) AddErrorRow([]TableCell) {
+func (job *QorJob) AddErrorRow([]TableCell) error {
+	return nil
 }
