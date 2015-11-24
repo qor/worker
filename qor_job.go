@@ -1,6 +1,9 @@
 package worker
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/jinzhu/gorm"
@@ -19,10 +22,30 @@ type QorJobInterface interface {
 	SetProgress(uint) error
 	SetProgressText(string) error
 	AddLog(string) error
-	AddErrorRow([]TableCell) error
+	AddTableRow([]TableCell) error
 
 	GetArgument() interface{}
 	admin.SerializeArgumentInterface
+}
+
+type ErrorTable struct {
+	TableCells [][]TableCell
+}
+
+func (errorTable *ErrorTable) Scan(data interface{}) error {
+	switch values := data.(type) {
+	case []byte:
+		return json.Unmarshal(values, errorTable)
+	case string:
+		return errorTable.Scan([]byte(values))
+	default:
+		return errors.New("unsupported data type for Qor Job error table")
+	}
+}
+
+func (errorTable ErrorTable) Value() (driver.Value, error) {
+	result, err := json.Marshal(errorTable)
+	return string(result), err
 }
 
 type TableCell struct {
@@ -35,7 +58,8 @@ type QorJob struct {
 	Status       string `sql:"default:'new'"`
 	Progress     uint
 	ProgressText string
-	Log          string `sql:"size:65532"`
+	Log          string     `sql:"size:65532"`
+	ErrorTable   ErrorTable `sql:"size:65532"`
 	audited.AuditedModel
 	admin.SerializeArgument
 	Job *Job `sql:"-"`
@@ -97,10 +121,16 @@ func (job *QorJob) SetProgressText(str string) error {
 	return worker.JobResource.CallSave(job, context)
 }
 
-func (job *QorJob) AddLog(string) error {
-	return nil
+func (job *QorJob) AddLog(log string) error {
+	worker := job.GetJob().Worker
+	context := worker.Admin.NewContext(nil, nil).Context
+	job.Log += "\n" + log
+	return worker.JobResource.CallSave(job, context)
 }
 
-func (job *QorJob) AddErrorRow([]TableCell) error {
-	return nil
+func (job *QorJob) AddTableRow(cells []TableCell) error {
+	worker := job.GetJob().Worker
+	context := worker.Admin.NewContext(nil, nil).Context
+	job.ErrorTable.TableCells = append(job.ErrorTable.TableCells, cells)
+	return worker.JobResource.CallSave(job, context)
 }
