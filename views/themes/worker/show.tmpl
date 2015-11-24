@@ -15,7 +15,17 @@
         Status: {{.Result.GetStatus}}
       </li>
       <li>
-        Progress: {{.Result.Progress}}
+        Progress: {{.Result.GetProgress}}
+      </li>
+      <li>
+        Errors:
+        {{.Result.GetErrorTable}}
+      </li>
+      <li>
+        Log Output:
+        {{range $log := .Result.GetLogs}}
+          {{$log}}<br>
+        {{end}}
       </li>
     </ul>
   </div>

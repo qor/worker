@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/jinzhu/gorm"
@@ -20,9 +21,13 @@ type QorJobInterface interface {
 	GetJob() *Job
 	SetJob(*Job)
 
+	GetProgress() uint
 	SetProgress(uint) error
+	GetProgressText() string
 	SetProgressText(string) error
+	GetLogs() []string
 	AddLog(string) error
+	GetErrorTable() ErrorTable
 	AddTableRow([]TableCell) error
 
 	GetArgument() interface{}
@@ -117,6 +122,10 @@ func (job *QorJob) GetSerializeArgumentResource() *admin.Resource {
 	return nil
 }
 
+func (job *QorJob) GetProgress() uint {
+	return job.Progress
+}
+
 func (job *QorJob) SetProgress(progress uint) error {
 	job.mutex.Lock()
 	defer job.mutex.Unlock()
@@ -130,6 +139,10 @@ func (job *QorJob) SetProgress(progress uint) error {
 	return worker.JobResource.CallSave(job, context)
 }
 
+func (job *QorJob) GetProgressText() string {
+	return job.ProgressText
+}
+
 func (job *QorJob) SetProgressText(str string) error {
 	job.mutex.Lock()
 	defer job.mutex.Unlock()
@@ -140,6 +153,10 @@ func (job *QorJob) SetProgressText(str string) error {
 	return worker.JobResource.CallSave(job, context)
 }
 
+func (job *QorJob) GetLogs() []string {
+	return strings.Split(job.Log, "\n")
+}
+
 func (job *QorJob) AddLog(log string) error {
 	job.mutex.Lock()
 	defer job.mutex.Unlock()
@@ -148,6 +165,10 @@ func (job *QorJob) AddLog(log string) error {
 	context := worker.Admin.NewContext(nil, nil).Context
 	job.Log += "\n" + log
 	return worker.JobResource.CallSave(job, context)
+}
+
+func (job *QorJob) GetErrorTable() ErrorTable {
+	return job.ErrorTable
 }
 
 func (job *QorJob) AddTableRow(cells []TableCell) error {
