@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -60,7 +61,7 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 	worker.JobResource.Meta(&admin.Meta{Name: "Name", Valuer: func(record interface{}, context *qor.Context) interface{} {
 		return record.(QorJobInterface).GetJobName()
 	}})
-	worker.JobResource.IndexAttrs("ID", "Name", "ProgressText", "Status", "CreatedAt")
+	worker.JobResource.IndexAttrs("ID", "Name", "Status", "CreatedAt")
 	worker.JobResource.Name = res.Name
 
 	for _, status := range []string{JobStatusNew, JobStatusRunning, JobStatusDone, JobStatusException} {
@@ -139,11 +140,16 @@ func (worker *Worker) AddJob(qorJob QorJobInterface) error {
 func (worker *Worker) RunJob(jobID string) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil && qorJob.GetStatus() == JobStatusNew {
 		if err := qorJob.SetStatus(JobStatusRunning); err == nil {
-			if err := qorJob.GetJob().Run(qorJob.GetSerializeArgument(qorJob)); err == nil {
-				return qorJob.SetStatus(JobStatusDone)
+			job := qorJob.GetJob()
+			if job.Handler != nil {
+				if err := job.Handler(qorJob.GetSerializeArgument(qorJob), qorJob); err == nil {
+					return qorJob.SetStatus(JobStatusDone)
+				} else {
+					qorJob.SetStatus(JobStatusException)
+					return err
+				}
 			} else {
-				qorJob.SetStatus(JobStatusException)
-				return err
+				return errors.New("no handler found for job " + job.Name)
 			}
 		} else {
 			return err

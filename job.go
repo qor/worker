@@ -7,15 +7,11 @@ import (
 
 type Job struct {
 	Name       string
-	Handler    func(record interface{}) error
+	Handler    func(interface{}, QorJobInterface) error
 	Permission roles.Permission
 	Queue      Queue
 	Resource   *admin.Resource
 	Worker     *Worker
-}
-
-func (job *Job) Run(argument interface{}) error {
-	return job.Handler(argument)
 }
 
 func (job *Job) NewStruct() interface{} {
