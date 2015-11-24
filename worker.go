@@ -101,8 +101,8 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 	router.Get("/"+res.ToParam()+"/.*$", controller.Show)
 	router.Get("/"+res.ToParam(), controller.Index)
 	router.Post("/"+res.ToParam()+"/.*/run$", controller.RunJob)
-	router.Post("/"+res.ToParam()+"/.*/kill$", controller.KillJob)
 	router.Post("/"+res.ToParam()+"$", controller.AddJob)
+	router.Delete("/"+res.ToParam()+"/.*$", controller.KillJob)
 }
 
 func (worker *Worker) SetQueue(queue Queue) {
@@ -167,11 +167,17 @@ func (worker *Worker) RunJob(jobID string) error {
 
 func (worker *Worker) KillJob(jobID string) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
-		if err := qorJob.GetJob().GetQueue().Kill(qorJob); err == nil {
-			qorJob.SetStatus(JobStatusKilled)
-			return nil
+		if qorJob.GetStatus() == JobStatusRunning {
+			if err := qorJob.GetJob().GetQueue().Kill(qorJob); err == nil {
+				qorJob.SetStatus(JobStatusKilled)
+				return nil
+			} else {
+				return err
+			}
+		} else if qorJob.GetStatus() == JobStatusNew {
+			return worker.RemoveJob(jobID)
 		} else {
-			return err
+			return errors.New("invalid job status")
 		}
 	} else {
 		return err

@@ -2,7 +2,6 @@ package worker
 
 import (
 	"net/http"
-	"path"
 
 	"github.com/qor/qor/admin"
 )
@@ -44,11 +43,26 @@ func (wc workerController) AddJob(context *admin.Context) {
 		wc.Worker.AddJob(result)
 	}
 
-	http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path), http.StatusFound)
+	http.Redirect(context.Writer, context.Request, context.Request.URL.Path, http.StatusFound)
 }
 
-func (workerController) RunJob(context *admin.Context) {
+func (wc workerController) RunJob(context *admin.Context) {
+	jobResource := wc.Worker.JobResource
+	result := jobResource.NewStruct().(QorJobInterface)
+
+	if job, err := wc.Worker.GetJob(context.ResourceID); context.AddError(err) {
+		result.SetJob(job.GetJob())
+		result.SetSerializeArgumentValue(result.GetArgument())
+		context.AddError(jobResource.CallSave(result, context.Context))
+		if context.HasError() {
+			wc.Worker.AddJob(result)
+		}
+	}
+
+	http.Redirect(context.Writer, context.Request, context.UrlFor(jobResource), http.StatusFound)
 }
 
-func (workerController) KillJob(context *admin.Context) {
+func (wc workerController) KillJob(context *admin.Context) {
+	wc.Worker.KillJob(context.ResourceID)
+	http.Redirect(context.Writer, context.Request, context.Request.URL.Path, http.StatusFound)
 }
