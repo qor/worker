@@ -29,6 +29,7 @@ type QorJobInterface interface {
 }
 
 type ErrorTable struct {
+	Name       string // only used for generate string column in database
 	TableCells [][]TableCell
 }
 
