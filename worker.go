@@ -137,19 +137,13 @@ func (worker *Worker) AddJob(qorJob QorJobInterface) error {
 	return worker.Queue.Add(qorJob)
 }
 
-func (worker *Worker) UpdateJobStatus(qorJob QorJobInterface, status string) error {
-	context := worker.Admin.NewContext(nil, nil).Context
-	qorJob.SetStatus(status)
-	return worker.JobResource.CallSave(qorJob, context)
-}
-
 func (worker *Worker) RunJob(jobID uint) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil && qorJob.GetStatus() == JobStatusNew {
-		if err := worker.UpdateJobStatus(qorJob, JobStatusRunning); err == nil {
+		if err := qorJob.SetStatus(JobStatusRunning); err == nil {
 			if err := qorJob.GetJob().Run(qorJob.GetSerializeArgument(qorJob)); err == nil {
-				return worker.UpdateJobStatus(qorJob, JobStatusDone)
+				return qorJob.SetStatus(JobStatusDone)
 			} else {
-				worker.UpdateJobStatus(qorJob, JobStatusException)
+				qorJob.SetStatus(JobStatusException)
 				return err
 			}
 		} else {
@@ -163,7 +157,7 @@ func (worker *Worker) RunJob(jobID uint) error {
 func (worker *Worker) KillJob(jobID uint) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
 		if err := qorJob.GetJob().GetQueue().Kill(qorJob); err == nil {
-			worker.UpdateJobStatus(qorJob, JobStatusKilled)
+			qorJob.SetStatus(JobStatusKilled)
 			return nil
 		} else {
 			return err
