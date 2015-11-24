@@ -10,6 +10,13 @@
   {{render "shared/errors"}}
 
   <div class="qor-form-container">
-    Status: {{.Result.GetStatus}}
+    <ul>
+      <li>
+        Status: {{.Result.GetStatus}}
+      </li>
+      <li>
+        Progress: {{.Result.Progress}}
+      </li>
+    </ul>
   </div>
 </div>

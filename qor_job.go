@@ -88,6 +88,9 @@ func (job *QorJob) SetStatus(status string) error {
 	worker := job.GetJob().Worker
 	context := worker.Admin.NewContext(nil, nil).Context
 	job.Status = status
+	if status == JobStatusDone {
+		job.Progress = 100
+	}
 	return worker.JobResource.CallSave(job, context)
 }
 
