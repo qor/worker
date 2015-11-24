@@ -13,6 +13,14 @@ import (
 	"github.com/qor/qor/roles"
 )
 
+const (
+	JobStatusNew       = "new"
+	JobStatusRunning   = "running"
+	JobStatusDone      = "done"
+	JobStatusException = "exception"
+	JobStatusKilled    = "killed"
+)
+
 func New(config ...Config) *Worker {
 	var cfg Config
 	if len(config) > 0 {
@@ -56,7 +64,7 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 	worker.JobResource.IndexAttrs("ID", "Name", "Status", "CreatedAt")
 	worker.JobResource.Permission = roles.Allow(roles.Update, "no_body").Allow(roles.Delete, "no_body")
 
-	for _, status := range []string{"new", "running", "done", "exception"} {
+	for _, status := range []string{JobStatusNew, JobStatusRunning, JobStatusDone, JobStatusException} {
 		var status = status
 		worker.JobResource.Scope(&admin.Scope{Name: status, Handle: func(db *gorm.DB, ctx *qor.Context) *gorm.DB {
 			return db.Where("status = ?", status)
@@ -136,12 +144,12 @@ func (worker *Worker) UpdateJobStatus(qorJob QorJobInterface, status string) err
 }
 
 func (worker *Worker) RunJob(jobID uint) error {
-	if qorJob, err := worker.GetJob(jobID); err == nil {
-		if err := worker.UpdateJobStatus(qorJob, "running"); err == nil {
+	if qorJob, err := worker.GetJob(jobID); err == nil && qorJob.GetStatus() == JobStatusNew {
+		if err := worker.UpdateJobStatus(qorJob, JobStatusRunning); err == nil {
 			if err := qorJob.GetJob().Run(qorJob.GetSerializeArgument(qorJob)); err == nil {
-				return worker.UpdateJobStatus(qorJob, "done")
+				return worker.UpdateJobStatus(qorJob, JobStatusDone)
 			} else {
-				worker.UpdateJobStatus(qorJob, "exception")
+				worker.UpdateJobStatus(qorJob, JobStatusException)
 				return err
 			}
 		} else {
@@ -155,7 +163,7 @@ func (worker *Worker) RunJob(jobID uint) error {
 func (worker *Worker) KillJob(jobID uint) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
 		if err := qorJob.GetJob().GetQueue().Kill(qorJob); err == nil {
-			worker.UpdateJobStatus(qorJob, "killed")
+			worker.UpdateJobStatus(qorJob, JobStatusKilled)
 			return nil
 		} else {
 			return err
