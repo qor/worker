@@ -139,9 +139,15 @@ func (worker *Worker) AddJob(qorJob QorJobInterface) error {
 
 func (worker *Worker) RunJob(jobID string) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil && qorJob.GetStatus() == JobStatusNew {
+		defer func() {
+			if r := recover(); r != nil {
+				qorJob.SetProgressText(fmt.Sprint(r))
+				qorJob.SetStatus(JobStatusException)
+			}
+		}()
+
 		if err := qorJob.SetStatus(JobStatusRunning); err == nil {
-			job := qorJob.GetJob()
-			if job.Handler != nil {
+			if job := qorJob.GetJob(); job.Handler != nil {
 				if err := job.Handler(qorJob.GetSerializeArgument(qorJob), qorJob); err == nil {
 					return qorJob.SetStatus(JobStatusDone)
 				} else {
