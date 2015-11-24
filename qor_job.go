@@ -21,6 +21,7 @@ type QorJobInterface interface {
 	AddLog(string) error
 	AddErrorRow([]TableCell) error
 
+	GetArgument() interface{}
 	admin.SerializeArgumentInterface
 }
 
@@ -69,6 +70,10 @@ func (job *QorJob) GetJob() *Job {
 		return job.Job
 	}
 	return nil
+}
+
+func (job *QorJob) GetArgument() interface{} {
+	return job.GetSerializeArgument(job)
 }
 
 func (job *QorJob) GetSerializeArgumentResource() *admin.Resource {
