@@ -10,7 +10,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
-	"github.com/qor/qor/roles"
 )
 
 const (
@@ -62,7 +61,7 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 		return record.(QorJobInterface).GetJobName()
 	}})
 	worker.JobResource.IndexAttrs("ID", "Name", "ProgressText", "Status", "CreatedAt")
-	worker.JobResource.Permission = roles.Allow(roles.Update, "no_body").Allow(roles.Delete, "no_body")
+	worker.JobResource.Name = res.Name
 
 	for _, status := range []string{JobStatusNew, JobStatusRunning, JobStatusDone, JobStatusException} {
 		var status = status
