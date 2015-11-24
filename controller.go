@@ -65,6 +65,6 @@ func (wc workerController) RunJob(context *admin.Context) {
 }
 
 func (wc workerController) KillJob(context *admin.Context) {
-	wc.Worker.KillJob(context.ResourceID)
+	context.AddError(wc.Worker.KillJob(context.ResourceID))
 	http.Redirect(context.Writer, context.Request, context.Request.URL.Path, http.StatusFound)
 }

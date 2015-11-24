@@ -8,6 +8,9 @@
 </div>
 
 <div class="qor-page__body">
+  {{render "shared/flashes"}}
+  {{render "shared/errors"}}
+
   {{$jobContext := new_resource_context .Result.JobResource}}
 
   <div class="qor-table-container">

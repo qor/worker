@@ -1,6 +1,9 @@
 {{$resource := .Resource}}
 {{$worker := .Result}}
 <div class="qor-page__body">
+  {{render "shared/flashes"}}
+  {{render "shared/errors"}}
+
   <div class="qor-form-container">
     {{range $job := $worker.Jobs}}
       {{dt (print "worker.jobs." $job.Name) $job.Name}}
