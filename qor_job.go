@@ -123,6 +123,9 @@ func (job *QorJob) SetProgress(progress uint) error {
 
 	worker := job.GetJob().Worker
 	context := worker.Admin.NewContext(nil, nil).Context
+	if progress > 100 {
+		progress = 100
+	}
 	job.Progress = progress
 	return worker.JobResource.CallSave(job, context)
 }
