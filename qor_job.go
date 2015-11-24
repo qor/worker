@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/admin"
@@ -61,9 +62,11 @@ type QorJob struct {
 	ProgressText string
 	Log          string     `sql:"size:65532"`
 	ErrorTable   ErrorTable `sql:"size:65532"`
+
+	mutex sync.Mutex `sql:"-"`
+	Job   *Job       `sql:"-"`
 	audited.AuditedModel
 	admin.SerializeArgument
-	Job *Job `sql:"-"`
 }
 
 func (job QorJob) GetJobID() string {
@@ -79,6 +82,9 @@ func (job *QorJob) GetStatus() string {
 }
 
 func (job *QorJob) SetStatus(status string) error {
+	job.mutex.Lock()
+	defer job.mutex.Unlock()
+
 	worker := job.GetJob().Worker
 	context := worker.Admin.NewContext(nil, nil).Context
 	job.Status = status
@@ -109,6 +115,9 @@ func (job *QorJob) GetSerializeArgumentResource() *admin.Resource {
 }
 
 func (job *QorJob) SetProgress(progress uint) error {
+	job.mutex.Lock()
+	defer job.mutex.Unlock()
+
 	worker := job.GetJob().Worker
 	context := worker.Admin.NewContext(nil, nil).Context
 	job.Progress = progress
@@ -116,6 +125,9 @@ func (job *QorJob) SetProgress(progress uint) error {
 }
 
 func (job *QorJob) SetProgressText(str string) error {
+	job.mutex.Lock()
+	defer job.mutex.Unlock()
+
 	worker := job.GetJob().Worker
 	context := worker.Admin.NewContext(nil, nil).Context
 	job.ProgressText = str
@@ -123,6 +135,9 @@ func (job *QorJob) SetProgressText(str string) error {
 }
 
 func (job *QorJob) AddLog(log string) error {
+	job.mutex.Lock()
+	defer job.mutex.Unlock()
+
 	worker := job.GetJob().Worker
 	context := worker.Admin.NewContext(nil, nil).Context
 	job.Log += "\n" + log
@@ -130,6 +145,9 @@ func (job *QorJob) AddLog(log string) error {
 }
 
 func (job *QorJob) AddTableRow(cells []TableCell) error {
+	job.mutex.Lock()
+	defer job.mutex.Unlock()
+
 	worker := job.GetJob().Worker
 	context := worker.Admin.NewContext(nil, nil).Context
 	job.ErrorTable.TableCells = append(job.ErrorTable.TableCells, cells)
