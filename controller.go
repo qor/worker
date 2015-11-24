@@ -16,7 +16,9 @@ func (wc workerController) Index(context *admin.Context) {
 }
 
 func (wc workerController) Show(context *admin.Context) {
-	context.Execute("show", wc.Worker)
+	job, err := wc.GetJob(context.ResourceID)
+	context.AddError(err)
+	context.Execute("show", job)
 }
 
 func (wc workerController) New(context *admin.Context) {

@@ -82,10 +82,10 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 	}
 
 	// Parse job
-	var qorJobID = flag.Int("qor-job", 0, "Qor Job ID")
+	var qorJobID = flag.String("qor-job", "", "Qor Job ID")
 	flag.Parse()
-	if qorJobID != nil && *qorJobID != 0 {
-		if err := worker.RunJob(uint(*qorJobID)); err == nil {
+	if qorJobID != nil && *qorJobID != "" {
+		if err := worker.RunJob(*qorJobID); err == nil {
 			os.Exit(0)
 		} else {
 			fmt.Println(err)
@@ -115,11 +115,11 @@ func (worker *Worker) RegisterJob(job Job) error {
 	return nil
 }
 
-func (worker *Worker) GetJob(jobID uint) (QorJobInterface, error) {
+func (worker *Worker) GetJob(jobID string) (QorJobInterface, error) {
 	qorJob := worker.JobResource.NewStruct().(QorJobInterface)
 
 	context := worker.Admin.NewContext(nil, nil)
-	context.ResourceID = fmt.Sprint(jobID)
+	context.ResourceID = jobID
 	context.Resource = worker.JobResource
 
 	if err := worker.JobResource.FindOneHandler(qorJob, nil, context.Context); err == nil {
@@ -137,7 +137,7 @@ func (worker *Worker) AddJob(qorJob QorJobInterface) error {
 	return worker.Queue.Add(qorJob)
 }
 
-func (worker *Worker) RunJob(jobID uint) error {
+func (worker *Worker) RunJob(jobID string) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil && qorJob.GetStatus() == JobStatusNew {
 		if err := qorJob.SetStatus(JobStatusRunning); err == nil {
 			if err := qorJob.GetJob().Run(qorJob.GetSerializeArgument(qorJob)); err == nil {
@@ -154,7 +154,7 @@ func (worker *Worker) RunJob(jobID uint) error {
 	}
 }
 
-func (worker *Worker) KillJob(jobID uint) error {
+func (worker *Worker) KillJob(jobID string) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
 		if err := qorJob.GetJob().GetQueue().Kill(qorJob); err == nil {
 			qorJob.SetStatus(JobStatusKilled)
@@ -167,7 +167,7 @@ func (worker *Worker) KillJob(jobID uint) error {
 	}
 }
 
-func (worker *Worker) RemoveJob(jobID uint) error {
+func (worker *Worker) RemoveJob(jobID string) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
 		return qorJob.GetJob().GetQueue().Remove(qorJob)
 	} else {
