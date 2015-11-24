@@ -17,15 +17,34 @@
       <li>
         Progress: {{.Result.GetProgress}}
       </li>
+
+      {{if .Result.GetErrorTable.TableCells}}
       <li>
         Errors:
-        {{.Result.GetErrorTable}}
+        <table>
+          {{range $cells := .Result.GetErrorTable.TableCells}}
+          <tr>
+            {{range $cell := $cell}}
+            <td>
+              $cell.Value
+              {{if $cell.Error}}
+              <div class="error">{{$cell.Error}}</div>
+              {{end}}
+            </td>
+            {{end}}
+          </tr>
+          {{end}}
+        </table>
       </li>
+      {{end}}
+
       <li>
         Log Output:
-        {{range $log := .Result.GetLogs}}
-          {{$log}}<br>
-        {{end}}
+        <div class="log-output">
+          {{range $log := .Result.GetLogs}}
+            {{$log}}<br>
+          {{end}}
+        </div>
       </li>
     </ul>
   </div>
