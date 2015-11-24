@@ -22,6 +22,6 @@ func (Cron) Kill(job QorJobInterface) error {
 	return nil
 }
 
-func (Cron) Delete(job QorJobInterface) error {
+func (Cron) Remove(job QorJobInterface) error {
 	return nil
 }

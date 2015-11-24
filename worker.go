@@ -154,15 +154,20 @@ func (worker *Worker) RunJob(jobID uint) error {
 
 func (worker *Worker) KillJob(jobID uint) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
-		return qorJob.GetJob().GetQueue().Kill(qorJob)
+		if err := qorJob.GetJob().GetQueue().Kill(qorJob); err == nil {
+			worker.UpdateJobStatus(qorJob, "killed")
+			return nil
+		} else {
+			return err
+		}
 	} else {
 		return err
 	}
 }
 
-func (worker *Worker) DeleteJob(jobID uint) error {
+func (worker *Worker) RemoveJob(jobID uint) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
-		return qorJob.GetJob().GetQueue().Delete(qorJob)
+		return qorJob.GetJob().GetQueue().Remove(qorJob)
 	} else {
 		return err
 	}
