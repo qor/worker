@@ -50,11 +50,13 @@ func (wc workerController) RunJob(context *admin.Context) {
 	jobResource := wc.Worker.JobResource
 	result := jobResource.NewStruct().(QorJobInterface)
 
-	if job, err := wc.Worker.GetJob(context.ResourceID); context.AddError(err) {
+	job, err := wc.Worker.GetJob(context.ResourceID)
+	context.AddError(err)
+	if !context.HasError() {
 		result.SetJob(job.GetJob())
-		result.SetSerializeArgumentValue(result.GetArgument())
+		result.SetSerializeArgumentValue(job.GetArgument())
 		context.AddError(jobResource.CallSave(result, context.Context))
-		if context.HasError() {
+		if !context.HasError() {
 			wc.Worker.AddJob(result)
 		}
 	}
