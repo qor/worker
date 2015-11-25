@@ -83,9 +83,17 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 
 	// Parse job
 	var qorJobID = flag.String("qor-job", "", "Qor Job ID")
+	var runAnother = flag.Bool("run-another", false, "Run another qor job")
 	flag.Parse()
-	if qorJobID != nil && *qorJobID != "" {
-		if err := worker.RunJob(*qorJobID); err == nil {
+	if *qorJobID != "" {
+		var fc func(jobID string) error
+		if *runAnother == true {
+			fc = worker.RunAnotherJob
+		} else {
+			fc = worker.RunJob
+		}
+
+		if err := fc(*qorJobID); err == nil {
 			os.Exit(0)
 		} else {
 			fmt.Println(err)
@@ -163,6 +171,10 @@ func (worker *Worker) RunJob(jobID string) error {
 	} else {
 		return err
 	}
+}
+
+func (worker *Worker) RunAnotherJob(jobID string) error {
+	return worker.RunJob(jobID)
 }
 
 func (worker *Worker) KillJob(jobID string) error {
