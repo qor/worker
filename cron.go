@@ -23,8 +23,9 @@ func (job cronJob) ToString() string {
 }
 
 type Cron struct {
-	Jobs  []*cronJob
-	mutex sync.Mutex `sql:"-"`
+	Jobs     []*cronJob
+	CronJobs []string
+	mutex    sync.Mutex `sql:"-"`
 }
 
 func NewCronQueue() *Cron {
@@ -35,15 +36,26 @@ func (cron *Cron) ParseJobs() []*cronJob {
 	cron.mutex.Lock()
 
 	cron.Jobs = []*cronJob{}
+	cron.CronJobs = []string{}
 	if out, err := exec.Command("crontab", "-l").Output(); err == nil {
-		for _, line := range strings.Split(string(out), "\n") {
+		var inQorJob bool
+		for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
 			if strings.HasPrefix(line, "## BEGIN QOR JOB") {
+				inQorJob = true
 				if idx := strings.Index(line, "{"); idx > 1 {
 					var job cronJob
 					if json.Unmarshal([]byte(line[idx-1:]), &job) == nil {
 						cron.Jobs = append(cron.Jobs, &job)
 					}
 				}
+			}
+
+			if !inQorJob {
+				cron.CronJobs = append(cron.CronJobs, line)
+			}
+
+			if strings.HasPrefix(line, "## END QOR JOB") {
+				inQorJob = false
 			}
 		}
 	}
@@ -57,9 +69,13 @@ func (cron *Cron) WriteCronJob() error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	stdin, _ := cmd.StdinPipe()
+	for _, cronJob := range cron.CronJobs {
+		stdin.Write([]byte(cronJob + "\n"))
+	}
+
 	for _, job := range cron.Jobs {
 		if !job.Delete {
-			stdin.Write([]byte(job.ToString()))
+			stdin.Write([]byte(job.ToString() + "\n"))
 		}
 	}
 	stdin.Close()
