@@ -162,15 +162,11 @@ func (worker *Worker) RunJob(jobID string) error {
 		}
 
 		if err := qorJob.SetStatus(JobStatusRunning); err == nil {
-			if job := qorJob.GetJob(); job.Handler != nil {
-				if err := job.Handler(qorJob.GetSerializeArgument(qorJob), qorJob); err == nil {
-					return qorJob.SetStatus(JobStatusDone)
-				} else {
-					qorJob.SetStatus(JobStatusException)
-					return err
-				}
+			if err := qorJob.GetJob().GetQueue().Run(qorJob); err == nil {
+				return qorJob.SetStatus(JobStatusDone)
 			} else {
-				return errors.New("no handler found for job " + job.Name)
+				qorJob.SetStatus(JobStatusException)
+				return err
 			}
 		} else {
 			return err

@@ -1,7 +1,8 @@
 package worker
 
 type Queue interface {
-	Kill(QorJobInterface) error
 	Add(QorJobInterface) error
+	Run(QorJobInterface) error
+	Kill(QorJobInterface) error
 	Remove(QorJobInterface) error
 }
