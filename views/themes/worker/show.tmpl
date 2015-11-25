@@ -11,11 +11,12 @@
 
   <div class="qor-form-container">
     <h2>{{.Result.GetJobName}}</h2>
-    <form action={{url_for .Result .Resource}} method="DELETE">
-      <input type="submit" value="{{t "kill"}}">
+    <form action={{url_for .Result .Resource}} method="POST">
+      <input type="hidden" name="_method" value="DELETE"/>
+      <input type="submit" value="{{t "kill"}}"/>
     </form>
     <form action={{print (url_for .Result .Resource) "/run"}} method="POST">
-      <input type="submit" value="{{t "rerun"}}">
+      <input type="submit" value="{{t "rerun"}}"/>
     </form>
     <ul>
       <li>

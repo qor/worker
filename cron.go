@@ -23,7 +23,7 @@ func (job cronJob) ToString() string {
 }
 
 type Cron struct {
-	Jobs  []cronJob
+	Jobs  []*cronJob
 	mutex sync.Mutex `sql:"-"`
 }
 
@@ -31,17 +31,17 @@ func NewCronQueue() *Cron {
 	return &Cron{}
 }
 
-func (cron *Cron) ParseJobs() []cronJob {
+func (cron *Cron) ParseJobs() []*cronJob {
 	cron.mutex.Lock()
 
-	cron.Jobs = []cronJob{}
+	cron.Jobs = []*cronJob{}
 	if out, err := exec.Command("crontab", "-l").Output(); err == nil {
 		for _, line := range strings.Split(string(out), "\n") {
 			if strings.HasPrefix(line, "## BEGIN QOR JOB") {
 				if idx := strings.Index(line, "{"); idx > 1 {
 					var job cronJob
 					if json.Unmarshal([]byte(line[idx-1:]), &job) == nil {
-						cron.Jobs = append(cron.Jobs, job)
+						cron.Jobs = append(cron.Jobs, &job)
 					}
 				}
 			}
@@ -73,7 +73,7 @@ func (cron *Cron) Add(job QorJobInterface) error {
 	binaryFile := os.Args[0]
 	cmd := exec.Command(binaryFile, "--qor-job", job.GetJobID())
 	if err := cmd.Start(); err == nil {
-		cron.Jobs = append(cron.Jobs, cronJob{
+		cron.Jobs = append(cron.Jobs, &cronJob{
 			JobID:   job.GetJobID(),
 			Command: "", // FIXME cronjob scheduler
 			Pid:     cmd.Process.Pid,
