@@ -86,14 +86,17 @@ func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
 	var runAnother = flag.Bool("run-another", false, "Run another qor job")
 	flag.Parse()
 	if *qorJobID != "" {
-		var fc func(jobID string) error
 		if *runAnother == true {
-			fc = worker.RunAnotherJob
-		} else {
-			fc = worker.RunJob
+			if newJob := worker.SaveAnotherJob(*qorJobID); newJob != nil {
+				newJobID := newJob.GetJobID()
+				qorJobID = &newJobID
+			} else {
+				fmt.Println("failed to clone job " + *qorJobID)
+				os.Exit(1)
+			}
 		}
 
-		if err := fc(*qorJobID); err == nil {
+		if err := worker.RunJob(*qorJobID); err == nil {
 			os.Exit(0)
 		} else {
 			fmt.Println(err)
@@ -146,13 +149,17 @@ func (worker *Worker) AddJob(qorJob QorJobInterface) error {
 }
 
 func (worker *Worker) RunJob(jobID string) error {
-	if qorJob, err := worker.GetJob(jobID); err == nil && qorJob.GetStatus() == JobStatusNew {
+	if qorJob, err := worker.GetJob(jobID); err == nil {
 		defer func() {
 			if r := recover(); r != nil {
 				qorJob.SetProgressText(fmt.Sprint(r))
 				qorJob.SetStatus(JobStatusException)
 			}
 		}()
+
+		if qorJob.GetStatus() != JobStatusNew {
+			return errors.New("invalid job status, current status: " + qorJob.GetStatus())
+		}
 
 		if err := qorJob.SetStatus(JobStatusRunning); err == nil {
 			if job := qorJob.GetJob(); job.Handler != nil {
@@ -173,8 +180,20 @@ func (worker *Worker) RunJob(jobID string) error {
 	}
 }
 
-func (worker *Worker) RunAnotherJob(jobID string) error {
-	return worker.RunJob(jobID)
+func (worker *Worker) SaveAnotherJob(jobID string) QorJobInterface {
+	jobResource := worker.JobResource
+	newJob := jobResource.NewStruct().(QorJobInterface)
+
+	job, err := worker.GetJob(jobID)
+	if err == nil {
+		newJob.SetJob(job.GetJob())
+		newJob.SetSerializeArgumentValue(job.GetArgument())
+		context := worker.Admin.NewContext(nil, nil)
+		if err := jobResource.CallSave(newJob, context.Context); err == nil {
+			return newJob
+		}
+	}
+	return nil
 }
 
 func (worker *Worker) KillJob(jobID string) error {

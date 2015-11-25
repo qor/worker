@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/qor/qor/admin"
@@ -47,21 +48,13 @@ func (wc workerController) AddJob(context *admin.Context) {
 }
 
 func (wc workerController) RunJob(context *admin.Context) {
-	jobResource := wc.Worker.JobResource
-	result := jobResource.NewStruct().(QorJobInterface)
-
-	job, err := wc.Worker.GetJob(context.ResourceID)
-	context.AddError(err)
-	if !context.HasError() {
-		result.SetJob(job.GetJob())
-		result.SetSerializeArgumentValue(job.GetArgument())
-		context.AddError(jobResource.CallSave(result, context.Context))
-		if !context.HasError() {
-			wc.Worker.AddJob(result)
-		}
+	if newJob := wc.Worker.SaveAnotherJob(context.ResourceID); newJob != nil {
+		wc.Worker.AddJob(newJob)
+	} else {
+		context.AddError(errors.New("failed to clone job " + context.ResourceID))
 	}
 
-	http.Redirect(context.Writer, context.Request, context.UrlFor(jobResource), http.StatusFound)
+	http.Redirect(context.Writer, context.Request, context.UrlFor(wc.Worker.JobResource), http.StatusFound)
 }
 
 func (wc workerController) KillJob(context *admin.Context) {

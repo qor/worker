@@ -163,6 +163,7 @@ func (job *QorJob) AddLog(log string) error {
 
 	worker := job.GetJob().Worker
 	context := worker.Admin.NewContext(nil, nil).Context
+	fmt.Println(log)
 	job.Log += "\n" + log
 	return worker.JobResource.CallSave(job, context)
 }
