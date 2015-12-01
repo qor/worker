@@ -11,6 +11,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/resource"
 )
 
 const (
@@ -50,70 +51,72 @@ type Worker struct {
 	Jobs        []*Job
 }
 
-func (worker *Worker) ConfigureQorResource(res *admin.Resource) {
-	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/worker/views"))
-	}
-	res.UseTheme("worker")
-
-	worker.Admin = res.GetAdmin()
-	worker.JobResource = worker.Admin.NewResource(worker.Config.Job)
-	worker.JobResource.Meta(&admin.Meta{Name: "Name", Valuer: func(record interface{}, context *qor.Context) interface{} {
-		return record.(QorJobInterface).GetJobName()
-	}})
-	worker.JobResource.IndexAttrs("ID", "Name", "Status", "CreatedAt")
-	worker.JobResource.Name = res.Name
-
-	for _, status := range []string{JobStatusNew, JobStatusRunning, JobStatusDone, JobStatusException} {
-		var status = status
-		worker.JobResource.Scope(&admin.Scope{Name: status, Handle: func(db *gorm.DB, ctx *qor.Context) *gorm.DB {
-			return db.Where("status = ?", status)
-		}})
-	}
-
-	// Auto Migration
-	worker.Admin.Config.DB.AutoMigrate(worker.Config.Job)
-
-	// Configure jobs
-	for _, job := range worker.Jobs {
-		if job.Resource == nil {
-			job.Resource = worker.Admin.NewResource(worker.JobResource.Value)
+func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
+	if res, ok := res.(*admin.Resource); ok {
+		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/worker/views"))
 		}
-	}
+		res.UseTheme("worker")
 
-	// Parse job
-	var qorJobID = flag.String("qor-job", "", "Qor Job ID")
-	var runAnother = flag.Bool("run-another", false, "Run another qor job")
-	flag.Parse()
-	if *qorJobID != "" {
-		if *runAnother == true {
-			if newJob := worker.SaveAnotherJob(*qorJobID); newJob != nil {
-				newJobID := newJob.GetJobID()
-				qorJobID = &newJobID
+		worker.Admin = res.GetAdmin()
+		worker.JobResource = worker.Admin.NewResource(worker.Config.Job)
+		worker.JobResource.Meta(&admin.Meta{Name: "Name", Valuer: func(record interface{}, context *qor.Context) interface{} {
+			return record.(QorJobInterface).GetJobName()
+		}})
+		worker.JobResource.IndexAttrs("ID", "Name", "Status", "CreatedAt")
+		worker.JobResource.Name = res.Name
+
+		for _, status := range []string{JobStatusNew, JobStatusRunning, JobStatusDone, JobStatusException} {
+			var status = status
+			worker.JobResource.Scope(&admin.Scope{Name: status, Handle: func(db *gorm.DB, ctx *qor.Context) *gorm.DB {
+				return db.Where("status = ?", status)
+			}})
+		}
+
+		// Auto Migration
+		worker.Admin.Config.DB.AutoMigrate(worker.Config.Job)
+
+		// Configure jobs
+		for _, job := range worker.Jobs {
+			if job.Resource == nil {
+				job.Resource = worker.Admin.NewResource(worker.JobResource.Value)
+			}
+		}
+
+		// Parse job
+		var qorJobID = flag.String("qor-job", "", "Qor Job ID")
+		var runAnother = flag.Bool("run-another", false, "Run another qor job")
+		flag.Parse()
+		if *qorJobID != "" {
+			if *runAnother == true {
+				if newJob := worker.SaveAnotherJob(*qorJobID); newJob != nil {
+					newJobID := newJob.GetJobID()
+					qorJobID = &newJobID
+				} else {
+					fmt.Println("failed to clone job " + *qorJobID)
+					os.Exit(1)
+				}
+			}
+
+			if err := worker.RunJob(*qorJobID); err == nil {
+				os.Exit(0)
 			} else {
-				fmt.Println("failed to clone job " + *qorJobID)
+				fmt.Println(err)
 				os.Exit(1)
 			}
 		}
 
-		if err := worker.RunJob(*qorJobID); err == nil {
-			os.Exit(0)
-		} else {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		// configure routes
+		router := worker.Admin.GetRouter()
+		controller := workerController{Worker: worker}
+
+		router.Get("/"+res.ToParam()+"/new", controller.New)
+		router.Get("/"+res.ToParam()+"/.*$", controller.Show)
+		router.Get("/"+res.ToParam(), controller.Index)
+		router.Post("/"+res.ToParam()+"/.*/run$", controller.RunJob)
+		router.Post("/"+res.ToParam()+"$", controller.AddJob)
+		router.Delete("/"+res.ToParam()+"/.*$", controller.KillJob)
 	}
-
-	// configure routes
-	router := worker.Admin.GetRouter()
-	controller := workerController{Worker: worker}
-
-	router.Get("/"+res.ToParam()+"/new", controller.New)
-	router.Get("/"+res.ToParam()+"/.*$", controller.Show)
-	router.Get("/"+res.ToParam(), controller.Index)
-	router.Post("/"+res.ToParam()+"/.*/run$", controller.RunJob)
-	router.Post("/"+res.ToParam()+"$", controller.AddJob)
-	router.Delete("/"+res.ToParam()+"/.*$", controller.KillJob)
 }
 
 func (worker *Worker) SetQueue(queue Queue) {
