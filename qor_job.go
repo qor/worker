@@ -11,6 +11,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/audited"
+	"github.com/qor/serializable_meta"
 )
 
 type QorJobInterface interface {
@@ -31,7 +32,7 @@ type QorJobInterface interface {
 	AddTableRow([]TableCell) error
 
 	GetArgument() interface{}
-	admin.SerializeArgumentInterface
+	serializable_meta.SerializableMetaInterface
 }
 
 type ErrorTable struct {
@@ -71,7 +72,7 @@ type QorJob struct {
 	mutex sync.Mutex `sql:"-"`
 	Job   *Job       `sql:"-"`
 	audited.AuditedModel
-	admin.SerializeArgument
+	serializable_meta.SerializableArgument
 }
 
 func (job QorJob) GetJobID() string {
@@ -112,10 +113,10 @@ func (job *QorJob) GetJob() *Job {
 }
 
 func (job *QorJob) GetArgument() interface{} {
-	return job.GetSerializeArgument(job)
+	return job.GetSerializableArgument(job)
 }
 
-func (job *QorJob) GetSerializeArgumentResource() *admin.Resource {
+func (job *QorJob) GetSerializableArgumentResource() *admin.Resource {
 	if j := job.GetJob(); j != nil {
 		return j.Resource
 	}

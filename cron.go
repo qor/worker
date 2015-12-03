@@ -103,7 +103,7 @@ func (cron *Cron) Add(job QorJobInterface) error {
 
 func (cron *Cron) Run(qorJob QorJobInterface) error {
 	if job := qorJob.GetJob(); job.Handler != nil {
-		if err := job.Handler(qorJob.GetSerializeArgument(qorJob), qorJob); err == nil {
+		if err := job.Handler(qorJob.GetSerializableArgument(qorJob), qorJob); err == nil {
 			cron.ParseJobs()
 			defer cron.WriteCronJob()
 			for _, cronJob := range cron.Jobs {

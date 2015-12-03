@@ -186,7 +186,7 @@ func (worker *Worker) SaveAnotherJob(jobID string) QorJobInterface {
 	job, err := worker.GetJob(jobID)
 	if err == nil {
 		newJob.SetJob(job.GetJob())
-		newJob.SetSerializeArgumentValue(job.GetArgument())
+		newJob.SetSerializableArgumentValue(job.GetArgument())
 		context := worker.Admin.NewContext(nil, nil)
 		if err := jobResource.CallSave(newJob, context.Context); err == nil {
 			return newJob
