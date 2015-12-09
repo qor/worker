@@ -72,7 +72,7 @@ type QorJob struct {
 	mutex sync.Mutex `sql:"-"`
 	Job   *Job       `sql:"-"`
 	audited.AuditedModel
-	serializable_meta.SerializableArgument
+	serializable_meta.SerializableMeta
 }
 
 func (job QorJob) GetJobID() string {
