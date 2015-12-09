@@ -10,7 +10,7 @@
       <form action="{{url_for $resource}}" method="POST">
         <input name="job_name" value={{$job.Name}} type="hidden">
 
-        {{render_form (new_sections $worker.JobResource) $job.NewStruct }}
+        {{render_form $job.NewStruct (new_sections $worker.JobResource)}}
 
         <div class="qor-form__actions">
           <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{dt "worker.run_job" "Run"}}</button>
