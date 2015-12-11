@@ -1,44 +1,33 @@
 # Worker
 
-## Usage
+## Basic Usage
 
 ```go
-Worker := worker.New(db *gorm.DB)
-Worker.SetQueue(cron.NewCronQueue())
+Worker := worker.New()
 
-type ImportProductArgument struct {
-    When *time.Time
-    File media_library.FileSystem
+type sendNewsletterArgument struct {
+	Subject      string
+	Content      string `sql:"size:65532"`
+	SendPassword string
 }
 
 Worker.RegisterJob(worker.Job{
-  Name: "import product",
-  Handler: func(record interface{}) {
-    // record.(*ImportProductArgument)
-    // Do something
-  },
-  Resource: Admin.NewResource(&ImportProductArgument{}),
-  Permission: roles.Permission,
-  OnKill: func(record interface{}) error {},
-  Queue: Queue,
+	Name: "send_newsletter",
+	Handler: func(argument interface{}, qorJob worker.QorJobInterface) error {
+		qorJob.AddLog("Started sending newsletters...")
+		qorJob.AddLog(fmt.Sprintf("Argument: %+v", argument.(*sendNewsletterArgument)))
+
+		for i := 1; i <= 100; i++ {
+			time.Sleep(100 * time.Millisecond)
+			qorJob.AddLog(fmt.Sprintf("Sending newsletter %v...", i))
+			qorJob.SetProgress(uint(i))
+		}
+		qorJob.AddLog("Finished send newsletters")
+		return nil
+	},
+	Resource: Admin.NewResource(&sendNewsletterArgument{}),
 })
 
-Worker.AddJob(QorJob) // queue -> Add
-
-Worker.RunJob(job.ID)
-Worker.KillJob(job.ID)
-Worker.DeleteJob(job.ID)
-```
-
-## Implement Queue
-
-```go
-type Cron struct {
-}
-
-func (Cron) Add(QorJob) error {
-}
-
-func (Cron) Delete(QorJob) error {
-}
+// Add to qor admin github.com/qor/qor
+Admin.AddResource(Worker)
 ```
