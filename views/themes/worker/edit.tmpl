@@ -25,6 +25,9 @@
       <li>
         Progress: {{.Result.GetProgress}}
       </li>
+      <li>
+        Progress Text: {{raw .Result.GetProgressText}}
+      </li>
 
       {{if .Result.GetErrorTable.TableCells}}
       <li>

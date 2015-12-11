@@ -168,6 +168,7 @@ func (worker *Worker) RunJob(jobID string) error {
 			if err := qorJob.GetJob().GetQueue().Run(qorJob); err == nil {
 				return qorJob.SetStatus(JobStatusDone)
 			} else {
+				qorJob.SetProgressText(err.Error())
 				qorJob.SetStatus(JobStatusException)
 				return err
 			}
