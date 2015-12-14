@@ -29,7 +29,7 @@ type QorJobInterface interface {
 	GetLogs() []string
 	AddLog(string) error
 	GetErrorTable() ErrorTable
-	AddTableRow([]TableCell) error
+	AddTableRow(...TableCell) error
 
 	GetArgument() interface{}
 	serializable_meta.SerializableMetaInterface
@@ -173,7 +173,7 @@ func (job *QorJob) GetErrorTable() ErrorTable {
 	return job.ErrorTable
 }
 
-func (job *QorJob) AddTableRow(cells []TableCell) error {
+func (job *QorJob) AddTableRow(cells ...TableCell) error {
 	job.mutex.Lock()
 	defer job.mutex.Unlock()
 
