@@ -35,9 +35,8 @@
         <table>
           {{range $cells := .Result.GetErrorTable.TableCells}}
           <tr>
-            {{range $cell := $cell}}
+            {{range $cell := $cells}}
             <td>
-              $cell.Value
               {{if $cell.Error}}
               <div class="error">{{$cell.Error}}</div>
               {{end}}

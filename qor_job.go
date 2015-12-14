@@ -57,8 +57,8 @@ func (errorTable ErrorTable) Value() (driver.Value, error) {
 }
 
 type TableCell struct {
-	Value interface{}
-	Error error
+	Value string
+	Error string
 }
 
 type QorJob struct {
