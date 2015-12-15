@@ -36,7 +36,9 @@
           {{range $cells := .Result.GetErrorTable.TableCells}}
           <tr>
             {{range $cell := $cells}}
-            <td>
+            <td {{if $cell.Error}}class="has-error"{{end}}>
+              {{$cell.Value}}
+
               {{if $cell.Error}}
               <div class="error">{{$cell.Error}}</div>
               {{end}}
