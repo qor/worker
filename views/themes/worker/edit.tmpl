@@ -10,54 +10,68 @@
   {{render "shared/errors"}}
 
   <div class="qor-form-container">
-    <h2>{{.Result.GetJobName}}</h2>
-    <form action={{url_for .Result .Resource}} method="POST">
-      <input type="hidden" name="_method" value="DELETE"/>
-      <input type="submit" value="{{t "kill"}}"/>
-    </form>
-    <form action={{print (url_for .Result .Resource) "/run"}} method="POST">
-      <input type="submit" value="{{t "rerun"}}"/>
-    </form>
-    <ul>
-      <li>
-        Status: {{.Result.GetStatus}}
-      </li>
-      <li>
-        Progress: {{.Result.GetProgress}}
-      </li>
-      <li>
-        Progress Text: {{raw .Result.GetProgressText}}
-      </li>
+    <div class="mdl-grid">
 
-      {{if .Result.GetErrorTable.TableCells}}
-      <li>
-        Errors:
-        <table>
-          {{range $cells := .Result.GetErrorTable.TableCells}}
-          <tr>
-            {{range $cell := $cells}}
-            <td {{if $cell.Error}}class="has-error"{{end}}>
-              {{$cell.Value}}
+      <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
+        <p class="workers-label-title">Process Name</p>
+        <p class="workers-label-content">{{.Result.GetJobName}}</p>
+      </div>
 
-              {{if $cell.Error}}
-              <div class="error">{{$cell.Error}}</div>
-              {{end}}
-            </td>
-            {{end}}
-          </tr>
-          {{end}}
-        </table>
-      </li>
-      {{end}}
+      <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet qor-worker--progress">
+        <p class="workers-label-title">Status</p>
+        <p class="workers-label-content">{{.Result.GetStatus}} ({{.Result.GetProgress}}%)</p>
+        <div id="p1" class="mdl-progress mdl-js-progress"></div>
+      </div>
 
-      <li>
-        Log Output:
-        <div class="log-output">
+      <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
+        <p class="workers-label-title">Process Log</p>
+        <div class="workers-log-output">
           {{range $log := .Result.GetLogs}}
-            {{$log}}<br>
+            <p>{{$log}}</p>
           {{end}}
         </div>
-      </li>
-    </ul>
+      </div>
+
+      {{if .Result.GetProgressText}}
+      <div class="mdl-cell mdl-cell--4-col mdl-cell--12-col-tablet">
+        <p class="workers-label-content">{{raw .Result.GetProgressText}}</p>
+      </div>
+      {{end}}
+
+      {{if .Result.GetErrorTable.TableCells}}
+      <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
+        <p class="workers-label-title">Process Errors</p>
+        <div class="qor-table-container workers-error-output">
+          <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp qor-table qor-js-table is-sortable is-upgraded">
+              {{range $cells := .Result.GetErrorTable.TableCells}}
+              <tr>
+                {{range $cell := $cells}}
+                <td class="mdl-data-table__cell--non-numeric{{if $cell.Error}} worker-process-error{{end}}">
+                  {{$cell.Value}}
+                  {{if $cell.Error}}
+                    <p>{{$cell.Error}}</p>
+                  {{end}}
+                </td>
+                {{end}}
+              </tr>
+              {{end}}
+            </table>
+        </div>
+      </div>
+      {{end}}
+
+    </div>
+
+    <div class="qor-workers-buttons">
+      <form action={{print (url_for .Result .Resource) "/run"}} method="POST">
+        <button type="submit" class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect">{{dt "worker.rerun_process" "rerun progress"}}</button>
+      </form>
+
+      <form action={{url_for .Result .Resource}} method="POST">
+        <input type="hidden" name="_method" value="DELETE"/>
+        <button type="submit" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent">{{t "abort process"}}</button>
+      </form>
+    </div>
+
   </div>
 </div>

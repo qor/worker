@@ -1,0 +1,52 @@
+.qor-slideout__sub-title {
+  font-size: 20px;
+  line-height: 1;
+  margin: 20px 0 10px 0; }
+
+.qor-worker-form-list .qor-sub-nav-trigger {
+  margin: 2px 0;
+  display: inline-block; }
+
+.workers-label-title, .workers-label-content {
+  margin: 0; }
+
+.workers-label-title {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.54); }
+
+.workers-label-content {
+  font-size: 14px; }
+
+.workers-log-output {
+  background-color: #222;
+  color: #fff;
+  font-family: "menlo","Roboto", "Helvetica", "Arial", sans-serif;
+  height: 300px;
+  padding: 8px;
+  overflow: auto; }
+  .workers-log-output p {
+    line-height: 1;
+    font-size: 12px;
+    margin: 0;
+    margin-bottom: 4px; }
+
+.qor-workers-buttons button {
+  display: block;
+  float: right;
+  margin: 16px; }
+
+.qor-worker--progress .workers-label-content {
+  float: left;
+  width: 90px; }
+
+.qor-worker--progress .mdl-progress {
+  float: left;
+  margin-top: 10px;
+  width: calc(100% - 90px); }
+
+.workers-error-output {
+  margin: 0; }
+
+.worker-process-error {
+  background-color: #ff4081;
+  color: #fff; }
