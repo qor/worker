@@ -10,39 +10,29 @@
   {{render "shared/errors"}}
 
   <div class="qor-form-container">
-    <div class="mdl-grid">
+    <div class="mdl-grid" data-toggle="qor.workers">
 
       <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
         <p class="workers-label-title">Process Name</p>
         <p class="workers-label-content">{{.Result.GetJobName}}</p>
       </div>
 
-      <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet qor-worker--progress">
+      <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet qor-worker--progress" data-worker-progress={{.Result.GetProgress}} data-worker-status={{.Result.GetStatus}}>
         <p class="workers-label-title">Status</p>
-        <p class="workers-label-content">{{.Result.GetStatus}} ({{.Result.GetProgress}}%)</p>
-        <div id="p1" class="mdl-progress mdl-js-progress"></div>
+        <p class="workers-label-content">
+          <span class="qor-worker--progress-status">{{.Result.GetStatus}}</span> (<span class="qor-worker--progress-value">{{.Result.GetProgress}}</span>%)
+        </p>
+        <div id="qor-worker--progress" class="mdl-progress mdl-js-progress{{if .Result.GetErrorTable.TableCells}} has-errors-texts{{end}}"></div>
+        {{if .Result.GetErrorTable.TableCells}}
+          <a href="#" class="qor-worker--show-errors">{{dt "worker.show_full_report" "show full report"}}</a>
+        {{end}}
       </div>
-
-      <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
-        <p class="workers-label-title">Process Log</p>
-        <div class="workers-log-output">
-          {{range $log := .Result.GetLogs}}
-            <p>{{$log}}</p>
-          {{end}}
-        </div>
-      </div>
-
-      {{if .Result.GetProgressText}}
-      <div class="mdl-cell mdl-cell--4-col mdl-cell--12-col-tablet">
-        <p class="workers-label-content">{{raw .Result.GetProgressText}}</p>
-      </div>
-      {{end}}
 
       {{if .Result.GetErrorTable.TableCells}}
-      <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
+      <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet hidden">
         <p class="workers-label-title">Process Errors</p>
         <div class="qor-table-container workers-error-output">
-          <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp qor-table qor-js-table is-sortable is-upgraded">
+          <table class="mdl-data-table mdl-js-data-table qor-table is-sortable is-upgraded">
               {{range $cells := .Result.GetErrorTable.TableCells}}
               <tr>
                 {{range $cell := $cells}}
@@ -57,6 +47,17 @@
               {{end}}
             </table>
         </div>
+      </div>
+      {{end}}
+
+      <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
+        <p class="workers-label-title">Process Log</p>
+        <div class="workers-log-output">{{range $log := .Result.GetLogs}}<p>{{$log}}</p>{{end}}</div>
+      </div>
+
+      {{if .Result.GetProgressText}}
+      <div class="mdl-cell mdl-cell--4-col mdl-cell--12-col-tablet">
+        <p class="workers-label-content">{{raw .Result.GetProgressText}}</p>
       </div>
       {{end}}
 

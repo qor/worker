@@ -5,21 +5,23 @@
   {{render "shared/errors"}}
 
   <div class="qor-form-container">
-    <h2 class="qor-slideout__sub-title">Import / Export</h2>
+    <div data-toggle="qor.workers">
+      <h2 class="qor-slideout__sub-title">Import / Export</h2>
 
-    {{range $job := $worker.Jobs}}
-      <div class="qor-worker-form-list">
-        <a href="#" class="qor-sub-nav-trigger">{{dt (print "worker.jobs." $job.Name) $job.Name}}</a>
-        <form action="{{url_for $resource}}" method="POST" class="hidden">
-          <input name="job_name" value={{$job.Name}} type="hidden">
+      {{range $job := $worker.Jobs}}
+        <div class="qor-worker-form-list">
+          <a href="#" class="qor-worker--new">{{dt (print "worker.jobs." $job.Name) $job.Name}}</a>
+          <form action="{{url_for $resource}}" method="POST" class="hidden">
+            <input name="job_name" value={{$job.Name}} type="hidden">
 
-          {{render_form $job.NewStruct (new_sections $worker.JobResource)}}
+            {{render_form $job.NewStruct (new_sections $worker.JobResource)}}
 
-          <div class="qor-form__actions">
-            <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{dt "worker.run_job" "run process"}}</button>
-          </div>
-        </form>
-      </div>
-    {{end}}
+            <div class="qor-form__actions">
+              <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{dt "worker.run_job" "run process"}}</button>
+            </div>
+          </form>
+        </div>
+      {{end}}
+    </div>
   </div>
 </div>

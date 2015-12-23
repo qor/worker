@@ -5,7 +5,7 @@
 }
 
 .qor-worker-form-list{
-	.qor-sub-nav-trigger{
+	.qor-worker--new{
 		margin: 2px 0;
 		display: inline-block;
 
@@ -32,12 +32,18 @@
     height: 300px;
     padding: 8px;
     overflow: auto;
+    box-sizing: border-box;
     p{
         line-height: 1;
         font-size: 12px;
         margin: 0;
         margin-bottom: 4px;
     }
+}
+
+.workers-error-output{
+    max-height: 500px;
+    overflow: auto;
 }
 
 .qor-workers-buttons{
@@ -51,12 +57,20 @@
 .qor-worker--progress{
     .workers-label-content{
         float: left;
-        width: 90px;
+        width: 105px;
     }
     .mdl-progress{
         float: left;
         margin-top: 10px;
-        width: calc(100% - 90px);
+        width: calc(100% - 105px);
+        &.has-errors-texts{
+            width: calc(100% - 262px);
+            &+a{
+                display: inline-block;
+                margin: 3px 0 0 20px;
+                text-transform: uppercase;
+            }
+        }
     }
 }
 
@@ -67,4 +81,10 @@
 .worker-process-error{
     background-color: rgb(255,64,129);
     color: #fff;
+}
+
+.qor-modal--worker-errors{
+    .mdl-card{
+        max-width: 80%;
+    }
 }
