@@ -2,7 +2,7 @@ package worker
 
 import (
 	"github.com/qor/qor/admin"
-	"github.com/qor/qor/roles"
+	"github.com/qor/roles"
 )
 
 type Job struct {
