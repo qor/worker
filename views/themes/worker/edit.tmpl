@@ -64,14 +64,16 @@
     </div>
 
     <div class="qor-workers-buttons">
-      <form action={{print (url_for .Result .Resource) "/run"}} method="POST">
-        <button type="submit" class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect">{{dt "worker.rerun_process" "rerun progress"}}</button>
-      </form>
-
+      {{if (or (eq .Result.GetStatus "new") (eq .Result.GetStatus "running"))}}
       <form action={{url_for .Result .Resource}} method="POST">
         <input type="hidden" name="_method" value="DELETE"/>
         <button type="submit" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent">{{t "abort process"}}</button>
       </form>
+      {{else}}
+      <form action={{print (url_for .Result .Resource) "/run"}} method="POST">
+        <button type="submit" class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect">{{dt "worker.rerun_process" "rerun progress"}}</button>
+      </form>
+      {{end}}
     </div>
 
   </div>
