@@ -109,13 +109,14 @@ func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 		// configure routes
 		router := worker.Admin.GetRouter()
 		controller := workerController{Worker: worker}
-
+		jobParamIDName := worker.JobResource.ParamIDName()
 		router.Get(res.ToParam(), controller.Index)
 		router.Get(res.ToParam()+"/new", controller.New)
-		router.Get(res.ToParam()+"/:id", controller.Show)
-		router.Post(res.ToParam()+"/:id/run", controller.RunJob)
+		router.Get(fmt.Sprintf("%v/%v", res.ToParam(), jobParamIDName), controller.Show)
+		router.Get(fmt.Sprintf("%v/%v/edit", res.ToParam(), jobParamIDName), controller.Show)
+		router.Post(fmt.Sprintf("%v/%v/run", res.ToParam(), jobParamIDName), controller.RunJob)
 		router.Post(res.ToParam(), controller.AddJob)
-		router.Delete(res.ToParam()+"/:id", controller.KillJob)
+		router.Delete(fmt.Sprintf("%v/%v", res.ToParam(), jobParamIDName), controller.KillJob)
 	}
 }
 
