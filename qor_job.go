@@ -10,7 +10,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/admin"
-	"github.com/qor/qor/audited"
+	"github.com/qor/audited"
 	"github.com/qor/serializable_meta"
 )
 
