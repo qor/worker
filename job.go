@@ -7,6 +7,7 @@ import (
 
 type Job struct {
 	Name       string
+	Group      string
 	Handler    func(interface{}, QorJobInterface) error
 	Permission roles.Permission
 	Queue      Queue
