@@ -51,6 +51,14 @@ type Worker struct {
 	Jobs        []*Job
 }
 
+func (worker *Worker) GroupedJobs() map[string][]*Job {
+	var groupedJobs = map[string][]*Job{}
+	for _, job := range worker.Jobs {
+		groupedJobs[job.Group] = append(groupedJobs[job.Group], job)
+	}
+	return groupedJobs
+}
+
 func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
 		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
