@@ -59,7 +59,7 @@ func (worker *Worker) GroupedJobs() map[string][]*Job {
 	return groupedJobs
 }
 
-func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
+func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
 		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
 			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/worker/views"))
@@ -90,7 +90,11 @@ func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 				job.Resource = worker.Admin.NewResource(worker.JobResource.Value)
 			}
 		}
+	}
+}
 
+func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
+	if res, ok := res.(*admin.Resource); ok {
 		// Parse job
 		var qorJobID = flag.String("qor-job", "", "Qor Job ID")
 		var runAnother = flag.Bool("run-another", false, "Run another qor job")
