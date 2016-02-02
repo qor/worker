@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/qor/qor/admin"
+	"github.com/qor/responder"
 )
 
 type workerController struct {
@@ -12,7 +13,19 @@ type workerController struct {
 }
 
 func (wc workerController) Index(context *admin.Context) {
-	context.Execute("index", wc.Worker)
+	context = context.NewResourceContext(wc.JobResource)
+	result, err := context.FindMany()
+	context.AddError(err)
+
+	if context.HasError() {
+		http.NotFound(context.Writer, context.Request)
+	} else {
+		responder.With("html", func() {
+			context.Execute("index", result)
+		}).With("json", func() {
+			context.JSON("index", result)
+		}).Respond(context.Request)
+	}
 }
 
 func (wc workerController) Show(context *admin.Context) {

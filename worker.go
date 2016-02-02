@@ -60,6 +60,7 @@ func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resource
 
 		worker.Admin = res.GetAdmin()
 		worker.JobResource = worker.Admin.NewResource(worker.Config.Job)
+		worker.JobResource.UseTheme("worker")
 		worker.JobResource.Meta(&admin.Meta{Name: "Name", Valuer: func(record interface{}, context *qor.Context) interface{} {
 			return record.(QorJobInterface).GetJobName()
 		}})
@@ -87,7 +88,11 @@ func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resource
 							jobNames = append(jobNames, job.Name)
 						}
 					}
-					return db.Where("kind IN (?)", jobNames)
+					if len(jobNames) > 0 {
+						return db.Where("kind IN (?)", jobNames)
+					} else {
+						return db.Where("kind IS NULL")
+					}
 				}
 
 				return db
