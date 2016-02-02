@@ -1,20 +1,22 @@
 {{$resource := .Resource}}
 {{$worker := .Result}}
+{{$grouped_jobs := (get_grouped_jobs .)}}
 <div class="qor-page__body">
   {{render "shared/flashes"}}
   {{render "shared/errors"}}
 
   <div class="qor-form-container">
     <div data-toggle="qor.workers">
-      {{range $title, $jobs := (get_grouped_jobs .)}}
+      {{range $title, $jobs := $grouped_jobs}}
       {{if $title}}
       <h2 class="qor-slideout__sub-title">{{dt (print "qor_worker.job_groups." $title) $title}}</h2>
       {{end}}
 
+      {{$show_form := (and (eq (len $grouped_jobs) 1) (eq (len $jobs) 1))}}
       {{range $job := $jobs}}
       <div class="qor-worker-form-list">
         <a href="#" class="qor-worker--new">{{dt (print "qor_worker.jobs." $job.Name) $job.Name}}</a>
-        <form action="{{url_for $resource}}" method="POST" class="hidden">
+        <form action="{{url_for $resource}}" method="POST" {{if not $show_form}}class="hidden"{{end}}>
           <input name="job_name" value={{$job.Name}} type="hidden">
 
           {{render_form $job.NewStruct (new_sections $worker.JobResource)}}
