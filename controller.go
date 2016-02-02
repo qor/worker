@@ -54,7 +54,11 @@ func (wc workerController) AddJob(context *admin.Context) {
 		// ensure job name is correct
 		result.SetJob(job)
 		context.AddError(jobResource.CallSave(result, context.Context))
-		wc.Worker.AddJob(result)
+		context.AddError(wc.Worker.AddJob(result))
+	}
+
+	if !context.HasError() {
+		context.Flash(string(context.Admin.T(context.Context, "resource_successfully_created", "{{.Name}} was successfully created", jobResource)), "success")
 	}
 
 	http.Redirect(context.Writer, context.Request, context.Request.URL.Path, http.StatusFound)
