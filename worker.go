@@ -73,6 +73,28 @@ func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resource
 			}})
 		}
 
+		// default scope
+		worker.JobResource.Scope(&admin.Scope{
+			Handle: func(db *gorm.DB, ctx *qor.Context) *gorm.DB {
+				if jobName := ctx.Request.URL.Query().Get("job"); jobName != "" {
+					return db.Where("kind = ?", jobName)
+				}
+
+				if groupName := ctx.Request.URL.Query().Get("group"); groupName != "" {
+					var jobNames []string
+					for _, job := range worker.Jobs {
+						if groupName == job.Group {
+							jobNames = append(jobNames, job.Name)
+						}
+					}
+					return db.Where("kind IN (?)", jobNames)
+				}
+
+				return db
+			},
+			Default: true,
+		})
+
 		// Auto Migration
 		worker.Admin.Config.DB.AutoMigrate(worker.Config.Job)
 
@@ -113,10 +135,10 @@ func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 		// register view funcmaps
 		worker.Admin.RegisterFuncMap("get_grouped_jobs", func(context *admin.Context) map[string][]*Job {
 			var groupedJobs = map[string][]*Job{}
-			var group = context.Request.URL.Query().Get("group")
-			var name = context.Request.URL.Query().Get("name")
+			var groupName = context.Request.URL.Query().Get("group")
+			var jobName = context.Request.URL.Query().Get("job")
 			for _, job := range worker.Jobs {
-				if (group == "" || group == job.Group) && (name == "" || name == job.Name) {
+				if (groupName == "" || groupName == job.Group) && (jobName == "" || jobName == job.Name) {
 					groupedJobs[job.Group] = append(groupedJobs[job.Group], job)
 				}
 			}
