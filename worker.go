@@ -51,14 +51,6 @@ type Worker struct {
 	Jobs        []*Job
 }
 
-func (worker *Worker) GroupedJobs() map[string][]*Job {
-	var groupedJobs = map[string][]*Job{}
-	for _, job := range worker.Jobs {
-		groupedJobs[job.Group] = append(groupedJobs[job.Group], job)
-	}
-	return groupedJobs
-}
-
 func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
 		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
@@ -117,6 +109,19 @@ func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 				os.Exit(1)
 			}
 		}
+
+		// register view funcmaps
+		worker.Admin.RegisterFuncMap("get_grouped_jobs", func(context *admin.Context) map[string][]*Job {
+			var groupedJobs = map[string][]*Job{}
+			var group = context.Request.URL.Query().Get("group")
+			var name = context.Request.URL.Query().Get("name")
+			for _, job := range worker.Jobs {
+				if (group == "" || group == job.Group) && (name == "" || name == job.Name) {
+					groupedJobs[job.Group] = append(groupedJobs[job.Group], job)
+				}
+			}
+			return groupedJobs
+		})
 
 		// configure routes
 		router := worker.Admin.GetRouter()

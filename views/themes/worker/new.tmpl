@@ -6,7 +6,7 @@
 
   <div class="qor-form-container">
     <div data-toggle="qor.workers">
-      {{range $title, $jobs := $worker.GroupedJobs}}
+      {{range $title, $jobs := (get_grouped_jobs .)}}
       {{if $title}}
       <h2 class="qor-slideout__sub-title">{{dt (print "qor_worker.job_groups." $title) $title}}</h2>
       {{end}}
