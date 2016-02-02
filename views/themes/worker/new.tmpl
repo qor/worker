@@ -1,6 +1,7 @@
 {{$resource := .Resource}}
 {{$worker := .Result}}
 {{$grouped_jobs := (get_grouped_jobs .)}}
+
 <div class="qor-page__body">
   {{render "shared/flashes"}}
   {{render "shared/errors"}}
@@ -9,7 +10,7 @@
     <div data-toggle="qor.workers">
       {{range $title, $jobs := $grouped_jobs}}
       {{if $title}}
-      <h2 class="qor-slideout__sub-title">{{dt (print "qor_worker.job_groups." $title) $title}}</h2>
+      <h5 class="qor-slideout__sub-title">{{dt (print "qor_worker.job_groups." $title) $title}}</h5>
       {{end}}
 
       {{$show_form := (and (eq (len $grouped_jobs) 1) (eq (len $jobs) 1))}}
