@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 )
@@ -86,21 +87,26 @@ func (cron *Cron) Add(job QorJobInterface) (err error) {
 	cron.ParseJobs()
 	defer cron.WriteCronJob()
 
-	binaryFile := os.Args[0]
+	var binaryFile string
+	if binaryFile, err = filepath.Abs(os.Args[0]); err == nil {
 
-	if scheduler, ok := job.GetArgument().(Scheduler); ok && scheduler.GetScheduleTime() != nil {
-		scheduleTime := scheduler.GetScheduleTime()
-		cron.Jobs = append(cron.Jobs, &cronJob{
-			JobID:   job.GetJobID(),
-			Command: fmt.Sprintf("%v %v %v %v * %v --qor-job %v", scheduleTime.Minute(), scheduleTime.Hour(), scheduleTime.Day(), scheduleTime.Month(), binaryFile, job.GetJobID()),
-		})
-	} else {
-		cmd := exec.Command(binaryFile, "--qor-job", job.GetJobID())
-		if err = cmd.Start(); err == nil {
-			cron.Jobs = append(cron.Jobs, &cronJob{JobID: job.GetJobID(), Pid: cmd.Process.Pid})
-			cmd.Process.Release()
+		if scheduler, ok := job.GetArgument().(Scheduler); ok && scheduler.GetScheduleTime() != nil {
+			scheduleTime := scheduler.GetScheduleTime()
+
+			currentPath, _ := os.Getwd()
+			cron.Jobs = append(cron.Jobs, &cronJob{
+				JobID:   job.GetJobID(),
+				Command: fmt.Sprintf("%d %d %d %d * cd %v; %v --qor-job %v\n", scheduleTime.Minute(), scheduleTime.Hour(), scheduleTime.Day(), scheduleTime.Month(), currentPath, binaryFile, job.GetJobID()),
+			})
+		} else {
+			cmd := exec.Command(binaryFile, "--qor-job", job.GetJobID())
+			if err = cmd.Start(); err == nil {
+				cron.Jobs = append(cron.Jobs, &cronJob{JobID: job.GetJobID(), Pid: cmd.Process.Pid})
+				cmd.Process.Release()
+			}
 		}
 	}
+
 	return
 }
 
