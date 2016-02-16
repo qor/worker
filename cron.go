@@ -82,23 +82,26 @@ func (cron *Cron) WriteCronJob() error {
 	return cmd.Run()
 }
 
-func (cron *Cron) Add(job QorJobInterface) error {
+func (cron *Cron) Add(job QorJobInterface) (err error) {
 	cron.ParseJobs()
 	defer cron.WriteCronJob()
 
 	binaryFile := os.Args[0]
-	cmd := exec.Command(binaryFile, "--qor-job", job.GetJobID())
-	if err := cmd.Start(); err == nil {
+
+	if scheduler, ok := job.GetArgument().(Scheduler); ok && scheduler.GetScheduleTime() != nil {
+		scheduleTime := scheduler.GetScheduleTime()
 		cron.Jobs = append(cron.Jobs, &cronJob{
 			JobID:   job.GetJobID(),
-			Command: "", // FIXME cronjob scheduler
-			Pid:     cmd.Process.Pid,
+			Command: fmt.Sprintf("%v %v %v %v * %v --qor-job %v", scheduleTime.Minute(), scheduleTime.Hour(), scheduleTime.Day(), scheduleTime.Month(), binaryFile, job.GetJobID()),
 		})
-		cmd.Process.Release()
-		return nil
 	} else {
-		return err
+		cmd := exec.Command(binaryFile, "--qor-job", job.GetJobID())
+		if err = cmd.Start(); err == nil {
+			cron.Jobs = append(cron.Jobs, &cronJob{JobID: job.GetJobID(), Pid: cmd.Process.Pid})
+			cmd.Process.Release()
+		}
 	}
+	return
 }
 
 func (cron *Cron) Run(qorJob QorJobInterface) error {
