@@ -188,6 +188,7 @@ func (worker *Worker) GetJob(jobID string) (QorJobInterface, error) {
 				return qorJob, nil
 			}
 		}
+		return nil, fmt.Errorf("failed to load job: %v, unregistered job type: %v", jobID, qorJob.GetJobName())
 	}
 	return nil, fmt.Errorf("failed to find job: %v", jobID)
 }
