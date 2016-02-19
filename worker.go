@@ -5,8 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path"
-	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -53,9 +51,7 @@ type Worker struct {
 
 func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
-		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/worker/views"))
-		}
+		admin.RegisterViewPath("github.com/qor/worker/views")
 		res.UseTheme("worker")
 
 		worker.Admin = res.GetAdmin()
