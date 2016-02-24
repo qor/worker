@@ -127,8 +127,6 @@ func (cron *Cron) Run(qorJob QorJobInterface) error {
 	} else {
 		return errors.New("no handler found for job " + job.Name)
 	}
-
-	return nil
 }
 
 func (cron *Cron) Kill(job QorJobInterface) error {

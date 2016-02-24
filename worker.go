@@ -164,9 +164,9 @@ func (worker *Worker) SetQueue(queue Queue) {
 	worker.Queue = queue
 }
 
-func (worker *Worker) RegisterJob(job Job) error {
+func (worker *Worker) RegisterJob(job *Job) error {
 	job.Worker = worker
-	worker.Jobs = append(worker.Jobs, &job)
+	worker.Jobs = append(worker.Jobs, job)
 	return nil
 }
 

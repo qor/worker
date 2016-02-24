@@ -9,8 +9,8 @@ import (
 	"sync"
 
 	"github.com/jinzhu/gorm"
-	"github.com/qor/qor/admin"
 	"github.com/qor/audited"
+	"github.com/qor/qor/admin"
 	"github.com/qor/serializable_meta"
 )
 
@@ -75,7 +75,7 @@ type QorJob struct {
 	serializable_meta.SerializableMeta
 }
 
-func (job QorJob) GetJobID() string {
+func (job *QorJob) GetJobID() string {
 	return fmt.Sprint(job.ID)
 }
 
