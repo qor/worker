@@ -5,6 +5,7 @@ import (
 	"github.com/qor/roles"
 )
 
+// Job defined qor job struct
 type Job struct {
 	Name       string
 	Group      string

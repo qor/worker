@@ -23,17 +23,19 @@ func (job cronJob) ToString() string {
 	return fmt.Sprintf("## BEGIN QOR JOB %v # %v\n%v\n## END QOR JOB\n", job.JobID, string(marshal), job.Command)
 }
 
+// Cron implemented a worker Queue based on cronjob
 type Cron struct {
 	Jobs     []*cronJob
 	CronJobs []string
 	mutex    sync.Mutex `sql:"-"`
 }
 
+// NewCronQueue initialize a Cron queue
 func NewCronQueue() *Cron {
 	return &Cron{}
 }
 
-func (cron *Cron) ParseJobs() []*cronJob {
+func (cron *Cron) parseJobs() []*cronJob {
 	cron.mutex.Lock()
 
 	cron.Jobs = []*cronJob{}
@@ -63,7 +65,7 @@ func (cron *Cron) ParseJobs() []*cronJob {
 	return cron.Jobs
 }
 
-func (cron *Cron) WriteCronJob() error {
+func (cron *Cron) writeCronJob() error {
 	defer cron.mutex.Unlock()
 
 	cmd := exec.Command("crontab", "-")
@@ -83,9 +85,10 @@ func (cron *Cron) WriteCronJob() error {
 	return cmd.Run()
 }
 
+// Add a job to cron queue
 func (cron *Cron) Add(job QorJobInterface) (err error) {
-	cron.ParseJobs()
-	defer cron.WriteCronJob()
+	cron.parseJobs()
+	defer cron.writeCronJob()
 
 	var binaryFile string
 	if binaryFile, err = filepath.Abs(os.Args[0]); err == nil {
@@ -110,11 +113,12 @@ func (cron *Cron) Add(job QorJobInterface) (err error) {
 	return
 }
 
+// Run a job from cron queue
 func (cron *Cron) Run(qorJob QorJobInterface) error {
 	if job := qorJob.GetJob(); job.Handler != nil {
 		if err := job.Handler(qorJob.GetSerializableArgument(qorJob), qorJob); err == nil {
-			cron.ParseJobs()
-			defer cron.WriteCronJob()
+			cron.parseJobs()
+			defer cron.writeCronJob()
 			for _, cronJob := range cron.Jobs {
 				if cronJob.JobID == qorJob.GetJobID() {
 					cronJob.Delete = true
@@ -129,19 +133,19 @@ func (cron *Cron) Run(qorJob QorJobInterface) error {
 	}
 }
 
+// Kill a job from cron queue
 func (cron *Cron) Kill(job QorJobInterface) error {
-	cron.ParseJobs()
-	defer cron.WriteCronJob()
+	cron.parseJobs()
+	defer cron.writeCronJob()
 
 	for _, cronJob := range cron.Jobs {
 		if cronJob.JobID == job.GetJobID() {
 			if process, err := os.FindProcess(cronJob.Pid); err == nil {
-				if err := process.Kill(); err == nil {
+				if err = process.Kill(); err == nil {
 					cronJob.Delete = true
 					return nil
-				} else {
-					return err
 				}
+				return err
 			} else {
 				return err
 			}
@@ -150,9 +154,10 @@ func (cron *Cron) Kill(job QorJobInterface) error {
 	return errors.New("failed to find job")
 }
 
+// Remove a job from cron queue
 func (cron *Cron) Remove(job QorJobInterface) error {
-	cron.ParseJobs()
-	defer cron.WriteCronJob()
+	cron.parseJobs()
+	defer cron.writeCronJob()
 
 	for _, cronJob := range cron.Jobs {
 		if cronJob.JobID == job.GetJobID() {
