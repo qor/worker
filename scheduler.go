@@ -7,7 +7,7 @@ type Scheduler interface {
 	GetScheduleTime() *time.Time
 }
 
-// Schedule could be embeded as job argument, then the job will get run as scheduled feature
+// Schedule could be embedded as job argument, then the job will get run as scheduled feature
 type Schedule struct {
 	ScheduleTime *time.Time
 }
