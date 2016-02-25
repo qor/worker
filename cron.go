@@ -115,8 +115,11 @@ func (cron *Cron) Add(job QorJobInterface) (err error) {
 
 // Run a job from cron queue
 func (cron *Cron) Run(qorJob QorJobInterface) error {
-	if job := qorJob.GetJob(); job.Handler != nil {
-		if err := job.Handler(qorJob.GetSerializableArgument(qorJob), qorJob); err == nil {
+	job := qorJob.GetJob()
+
+	if job.Handler != nil {
+		err := job.Handler(qorJob.GetSerializableArgument(qorJob), qorJob)
+		if err == nil {
 			cron.parseJobs()
 			defer cron.writeCronJob()
 			for _, cronJob := range cron.Jobs {
@@ -124,17 +127,15 @@ func (cron *Cron) Run(qorJob QorJobInterface) error {
 					cronJob.Delete = true
 				}
 			}
-			return nil
-		} else {
-			return err
 		}
-	} else {
-		return errors.New("no handler found for job " + job.Name)
+		return err
 	}
+
+	return errors.New("no handler found for job " + job.Name)
 }
 
 // Kill a job from cron queue
-func (cron *Cron) Kill(job QorJobInterface) error {
+func (cron *Cron) Kill(job QorJobInterface) (err error) {
 	cron.parseJobs()
 	defer cron.writeCronJob()
 
@@ -145,10 +146,8 @@ func (cron *Cron) Kill(job QorJobInterface) error {
 					cronJob.Delete = true
 					return nil
 				}
-				return err
-			} else {
-				return err
 			}
+			return err
 		}
 	}
 	return errors.New("failed to find job")

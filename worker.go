@@ -13,13 +13,19 @@ import (
 )
 
 const (
-	JobStatusNew       = "new"
-	JobStatusRunning   = "running"
-	JobStatusDone      = "done"
+	// JobStatusNew job status new
+	JobStatusNew = "new"
+	// JobStatusRunning job status running
+	JobStatusRunning = "running"
+	// JobStatusDone job status done
+	JobStatusDone = "done"
+	// JobStatusException job status exception
 	JobStatusException = "exception"
-	JobStatusKilled    = "killed"
+	// JobStatusKilled job status killed
+	JobStatusKilled = "killed"
 )
 
+// New create Worker with Config
 func New(config ...Config) *Worker {
 	var cfg Config
 	if len(config) > 0 {
@@ -37,18 +43,21 @@ func New(config ...Config) *Worker {
 	return &Worker{Config: &cfg}
 }
 
+// Config worker config
 type Config struct {
 	Queue Queue
 	Job   QorJobInterface
 	Admin *admin.Admin
 }
 
+// Worker worker definition
 type Worker struct {
 	*Config
 	JobResource *admin.Resource
 	Jobs        []*Job
 }
 
+// ConfigureQorResourceBeforeInitialize a method used to config Worker for qor admin
 func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
 		admin.RegisterViewPath("github.com/qor/worker/views")
@@ -86,9 +95,8 @@ func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resource
 					}
 					if len(jobNames) > 0 {
 						return db.Where("kind IN (?)", jobNames)
-					} else {
-						return db.Where("kind IS NULL")
 					}
+					return db.Where("kind IS NULL")
 				}
 
 				return db
@@ -108,6 +116,7 @@ func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resource
 	}
 }
 
+// ConfigureQorResource a method used to config Worker for qor admin
 func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
 		// Parse job
@@ -116,7 +125,7 @@ func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 		flag.Parse()
 		if *qorJobID != "" {
 			if *runAnother == true {
-				if newJob := worker.SaveAnotherJob(*qorJobID); newJob != nil {
+				if newJob := worker.saveAnotherJob(*qorJobID); newJob != nil {
 					newJobID := newJob.GetJobID()
 					qorJobID = &newJobID
 				} else {
@@ -160,16 +169,19 @@ func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 	}
 }
 
+// SetQueue set worker's queue
 func (worker *Worker) SetQueue(queue Queue) {
 	worker.Queue = queue
 }
 
+// RegisterJob register a job into Worker
 func (worker *Worker) RegisterJob(job *Job) error {
 	job.Worker = worker
 	worker.Jobs = append(worker.Jobs, job)
 	return nil
 }
 
+// GetJob get job with id
 func (worker *Worker) GetJob(jobID string) (QorJobInterface, error) {
 	qorJob := worker.JobResource.NewStruct().(QorJobInterface)
 
@@ -189,12 +201,16 @@ func (worker *Worker) GetJob(jobID string) (QorJobInterface, error) {
 	return nil, fmt.Errorf("failed to find job: %v", jobID)
 }
 
+// AddJob add job to worker
 func (worker *Worker) AddJob(qorJob QorJobInterface) error {
 	return worker.Queue.Add(qorJob)
 }
 
+// RunJob run job with job id
 func (worker *Worker) RunJob(jobID string) error {
-	if qorJob, err := worker.GetJob(jobID); err == nil {
+	qorJob, err := worker.GetJob(jobID)
+
+	if err == nil {
 		defer func() {
 			if r := recover(); r != nil {
 				qorJob.SetProgressText(fmt.Sprint(r))
@@ -206,23 +222,20 @@ func (worker *Worker) RunJob(jobID string) error {
 			return errors.New("invalid job status, current status: " + qorJob.GetStatus())
 		}
 
-		if err := qorJob.SetStatus(JobStatusRunning); err == nil {
-			if err := qorJob.GetJob().GetQueue().Run(qorJob); err == nil {
+		if err = qorJob.SetStatus(JobStatusRunning); err == nil {
+			if err = qorJob.GetJob().GetQueue().Run(qorJob); err == nil {
 				return qorJob.SetStatus(JobStatusDone)
-			} else {
-				qorJob.SetProgressText(err.Error())
-				qorJob.SetStatus(JobStatusException)
-				return err
 			}
-		} else {
-			return err
+
+			qorJob.SetProgressText(err.Error())
+			qorJob.SetStatus(JobStatusException)
 		}
-	} else {
-		return err
 	}
+
+	return err
 }
 
-func (worker *Worker) SaveAnotherJob(jobID string) QorJobInterface {
+func (worker *Worker) saveAnotherJob(jobID string) QorJobInterface {
 	jobResource := worker.JobResource
 	newJob := jobResource.NewStruct().(QorJobInterface)
 
@@ -238,15 +251,15 @@ func (worker *Worker) SaveAnotherJob(jobID string) QorJobInterface {
 	return nil
 }
 
+// KillJob kill job with job id
 func (worker *Worker) KillJob(jobID string) error {
 	if qorJob, err := worker.GetJob(jobID); err == nil {
 		if qorJob.GetStatus() == JobStatusRunning {
-			if err := qorJob.GetJob().GetQueue().Kill(qorJob); err == nil {
+			if err = qorJob.GetJob().GetQueue().Kill(qorJob); err == nil {
 				qorJob.SetStatus(JobStatusKilled)
 				return nil
-			} else {
-				return err
 			}
+			return err
 		} else if qorJob.GetStatus() == JobStatusNew {
 			return worker.RemoveJob(jobID)
 		} else {
@@ -257,10 +270,11 @@ func (worker *Worker) KillJob(jobID string) error {
 	}
 }
 
+// RemoveJob remove job with job id
 func (worker *Worker) RemoveJob(jobID string) error {
-	if qorJob, err := worker.GetJob(jobID); err == nil {
+	qorJob, err := worker.GetJob(jobID)
+	if err == nil {
 		return qorJob.GetJob().GetQueue().Remove(qorJob)
-	} else {
-		return err
 	}
+	return err
 }

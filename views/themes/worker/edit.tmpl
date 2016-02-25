@@ -23,18 +23,18 @@
           <p class="workers-label-content">
             <span class="qor-worker--progress-status">{{.Result.GetStatus}}</span> (<span class="qor-worker--progress-value">{{.Result.GetProgress}}</span>%)
           </p>
-          <div id="qor-worker--progress" class="mdl-progress mdl-js-progress{{if .Result.GetErrorTable.TableCells}} has-errors-texts{{end}}"></div>
-          {{if .Result.GetErrorTable.TableCells}}
-            <a href="#" class="qor-worker--show-errors">{{t "worker.show_full_report" "show full report"}}</a>
+          <div id="qor-worker--progress" class="mdl-progress mdl-js-progress{{if .Result.GetResultsTable.TableCells}} has-errors-texts{{end}}"></div>
+          {{if .Result.GetResultsTable.TableCells}}
+            <a href="#" class="qor-worker--show-errors">{{t "worker.show_full_report" "Show Full Report"}}</a>
           {{end}}
         </div>
 
-        {{if .Result.GetErrorTable.TableCells}}
+        {{if .Result.GetResultsTable.TableCells}}
           <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet hidden">
-            <p class="workers-label-title">{{t "qor_worker.jobs.Process Errors" "Process Errors"}}</p>
+            <p class="workers-label-title">{{t "qor_worker.jobs.process_results" "Process Results"}}</p>
             <div class="qor-table-container workers-error-output">
               <table class="mdl-data-table mdl-js-data-table qor-table is-sortable is-upgraded">
-                {{range $cells := .Result.GetErrorTable.TableCells}}
+                {{range $cells := .Result.GetResultsTable.TableCells}}
                   <tr>
                     {{range $cell := $cells}}
                       <td class="mdl-data-table__cell--non-numeric{{if $cell.Error}} worker-process-error{{end}}">

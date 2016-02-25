@@ -65,7 +65,7 @@ func (wc workerController) AddJob(context *admin.Context) {
 }
 
 func (wc workerController) RunJob(context *admin.Context) {
-	if newJob := wc.Worker.SaveAnotherJob(context.ResourceID); newJob != nil {
+	if newJob := wc.Worker.saveAnotherJob(context.ResourceID); newJob != nil {
 		wc.Worker.AddJob(newJob)
 	} else {
 		context.AddError(errors.New("failed to clone job " + context.ResourceID))

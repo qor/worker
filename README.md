@@ -18,6 +18,9 @@ func main() {
     Subject      string
     Content      string `sql:"size:65532"`
     SendPassword string
+
+    // If job's argument has embed `worker.Schedule`, it will get run as scheduled feature
+    worker.Schedule
   }
 
   // Register Job
@@ -46,6 +49,14 @@ func main() {
   Admin.AddResource(Worker)
 }
 ```
+
+## [Qor Support](https://github.com/qor/qor)
+
+[QOR](http://getqor.com) is architected from the ground up to accelerate development and deployment of Content Management Systems, E-commerce Systems, and Business Applications, and comprised of modules that abstract common features for such system.
+
+Worker is a plugin of Qor Admin, if you have requirements to manage your application's data, be sure to check QOR out!
+
+[Worker Demo:  http://demo.getqor.com/admin/workers](http://demo.getqor.com/admin/workers)
 
 ## License
 

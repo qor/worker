@@ -5,7 +5,7 @@ import (
 	"github.com/qor/roles"
 )
 
-// Job defined qor job struct
+// Job is a struct that hold Qor Job definations
 type Job struct {
 	Name       string
 	Group      string
@@ -16,12 +16,14 @@ type Job struct {
 	Worker     *Worker
 }
 
+// NewStruct initialize job struct
 func (job *Job) NewStruct() interface{} {
 	qorJobInterface := job.Worker.JobResource.NewStruct().(QorJobInterface)
 	qorJobInterface.SetJob(job)
 	return qorJobInterface
 }
 
+// GetQueue get defined job's queue
 func (job *Job) GetQueue() Queue {
 	if job.Queue != nil {
 		return job.Queue
