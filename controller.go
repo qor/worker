@@ -58,7 +58,12 @@ func (wc workerController) AddJob(context *admin.Context) {
 	}
 
 	if !context.HasError() {
-		context.Flash(string(context.Admin.T(context.Context, "resource_successfully_created", "{{.Name}} was successfully created", jobResource)), "success")
+		data := map[string]string{
+			"ID":   qorJob.GetJobID(),
+			"Name": qorJob.GetJobName(),
+		}
+
+		context.Flash(string(context.Admin.T(context.Context, "qor_worker.form.successfully_created", "{{.Name}} was successfully created", data)), "success")
 	}
 
 	http.Redirect(context.Writer, context.Request, context.Request.URL.Path, http.StatusFound)
@@ -75,6 +80,18 @@ func (wc workerController) RunJob(context *admin.Context) {
 }
 
 func (wc workerController) KillJob(context *admin.Context) {
-	context.AddError(wc.Worker.KillJob(context.ResourceID))
+	if qorJob, err := wc.Worker.GetJob(context.ResourceID); err == nil {
+		data := map[string]string{
+			"ID":   qorJob.GetJobID(),
+			"Name": qorJob.GetJobName(),
+		}
+
+		if context.AddError(wc.Worker.KillJob(qorJob.GetJobID())); !context.HasError() {
+			context.Flash(string(context.Admin.T(context.Context, "qor_worker.form.successfully_killed", "{{.Name}} was successfully killed", data)), "success")
+		} else {
+			context.Flash(string(context.Admin.T(context.Context, "qor_worker.form.failed_to_kill", "Failed to kill job {{.Name}} ", data)), "error")
+		}
+	}
+
 	http.Redirect(context.Writer, context.Request, context.Request.URL.Path, http.StatusFound)
 }
