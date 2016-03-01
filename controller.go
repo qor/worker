@@ -71,7 +71,7 @@ func (wc workerController) RunJob(context *admin.Context) {
 		context.AddError(errors.New("failed to clone job " + context.ResourceID))
 	}
 
-	http.Redirect(context.Writer, context.Request, context.UrlFor(wc.Worker.JobResource), http.StatusFound)
+	http.Redirect(context.Writer, context.Request, context.URLFor(wc.Worker.JobResource), http.StatusFound)
 }
 
 func (wc workerController) KillJob(context *admin.Context) {
