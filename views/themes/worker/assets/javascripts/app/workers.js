@@ -122,6 +122,8 @@
     if ($('.qor-worker--progress').data('worker-progress') == 100){
       window.clearInterval(QorWorker.getWorkerProgressIntervId);
       document.querySelector('#qor-worker--progress').MaterialProgress.setProgress(100);
+      $('.qor-workers-abort').addClass('hidden');
+      $('.qor-workers-rerun').removeClass('hidden');
       return;
     }
 
@@ -163,6 +165,8 @@
 
       if (currentStatus >= 100){
         window.clearInterval(QorWorker.getWorkerProgressIntervId);
+        $('.qor-workers-abort').addClass('hidden');
+        $('.qor-workers-rerun').removeClass('hidden');
       }
     });
   };

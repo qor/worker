@@ -65,16 +65,17 @@
       </div>
 
       <div class="qor-workers-buttons">
-        {{if (or (eq .Result.GetStatus "new") (eq .Result.GetStatus "running"))}}
-          <form action={{url_for .Result .Resource}} method="POST">
-            <input type="hidden" name="_method" value="DELETE"/>
-            <button type="submit" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent">{{t "qor_worker.jobs.abort process" "Abort Process"}}</button>
-          </form>
-        {{else}}
-          <form action={{print (url_for .Result .Resource) "/run"}} method="POST">
-            <button type="submit" class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect">{{t "qor_worker.jobs.rerun_process" "Rerun Process"}}</button>
-          </form>
-        {{end}}
+          <div class="qor-workers-abort{{if (or (eq .Result.GetStatus "new") (eq .Result.GetStatus "running"))}} show{{else}} hidden{{end}}">
+            <form action={{url_for .Result .Resource}} method="POST">
+              <input type="hidden" name="_method" value="DELETE"/>
+              <button type="submit" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent">{{t "qor_worker.jobs.abort process" "Abort Process"}}</button>
+            </form>
+          </div>
+          <div class="qor-workers-rerun{{if (eq .Result.GetStatus "done")}} show{{else}} hidden{{end}}">
+            <form action={{print (url_for .Result .Resource) "/run"}} method="POST">
+              <button type="submit" class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect">{{t "qor_worker.jobs.rerun_process" "Rerun Process"}}</button>
+            </form>
+          </div>
       </div>
     </div>
   {{end}}
