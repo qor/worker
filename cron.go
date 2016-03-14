@@ -92,23 +92,30 @@ func (cron *Cron) Add(job QorJobInterface) (err error) {
 
 	var binaryFile string
 	if binaryFile, err = filepath.Abs(os.Args[0]); err == nil {
+		var jobs []*cronJob
+		for _, cronJob := range cron.Jobs {
+			if cronJob.JobID != job.GetJobID() {
+				jobs = append(jobs, cronJob)
+			}
+		}
 
 		if scheduler, ok := job.GetArgument().(Scheduler); ok && scheduler.GetScheduleTime() != nil {
 			scheduleTime := scheduler.GetScheduleTime()
 			job.SetStatus(JobStatusScheduled)
 
 			currentPath, _ := os.Getwd()
-			cron.Jobs = append(cron.Jobs, &cronJob{
+			jobs = append(jobs, &cronJob{
 				JobID:   job.GetJobID(),
 				Command: fmt.Sprintf("%d %d %d %d * cd %v; %v --qor-job %v\n", scheduleTime.Minute(), scheduleTime.Hour(), scheduleTime.Day(), scheduleTime.Month(), currentPath, binaryFile, job.GetJobID()),
 			})
 		} else {
 			cmd := exec.Command(binaryFile, "--qor-job", job.GetJobID())
 			if err = cmd.Start(); err == nil {
-				cron.Jobs = append(cron.Jobs, &cronJob{JobID: job.GetJobID(), Pid: cmd.Process.Pid})
+				jobs = append(jobs, &cronJob{JobID: job.GetJobID(), Pid: cmd.Process.Pid})
 				cmd.Process.Release()
 			}
 		}
+		cron.Jobs = jobs
 	}
 
 	return
