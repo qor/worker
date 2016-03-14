@@ -1,4 +1,6 @@
+{{$job := .Result}}
 {{$actions := load_actions "show"}}
+
 {{if $actions}}
   <div class="qor-page__header">
     {{$actions}}
@@ -9,83 +11,91 @@
   {{render "shared/flashes"}}
   {{render "shared/errors"}}
 
-  {{if .Result}}
+  {{if $job}}
     <div class="qor-form-container">
-      <div class="mdl-grid" data-toggle="qor.workers">
+      {{if eq $job.GetStatus "scheduled"}}
+        <div class="qor-workers-buttons">
+          <div>
+            <p class="workers-label-title">{{t "qor_worker.jobs.Job Name" "Job Name"}}</p>
+            <p class="workers-label-content">{{$job.GetJobName}}</p>
+          </div>
 
-        <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
-          <p class="workers-label-title">{{t "qor_worker.jobs.Job Name" "Job Name"}}</p>
-          <p class="workers-label-content">{{.Result.GetJobName}}</p>
+          <div class="qor-workers-abort">
+            <form action={{url_for $job .Resource}} method="POST">
+              <input type="hidden" name="_method" value="PUT"/>
+              {{render_form $job (new_sections $job.GetJob.Worker.JobResource)}}
+
+              <button type="submit" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect">{{t "qor_worker.jobs.update_scheduled_process" "Update Scheduled Process"}}</button>
+            </form>
+
+            <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent" data-url="{{url_for $job .Resource}}" data-confirm="{{t "qor_admin.form.are_you_sure"}}" data-method="DELETE">{{t "qor_worker.jobs.cancel_scheduled_process" "Cancel Scheduled Process"}}</button>
+          </div>
         </div>
+      {{else}}
+        <div class="mdl-grid" data-toggle="qor.workers">
+          <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
+            <p class="workers-label-title">{{t "qor_worker.jobs.Job Name" "Job Name"}}</p>
+            <p class="workers-label-content">{{$job.GetJobName}}</p>
+          </div>
 
-        <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet qor-worker--progress" data-worker-progress={{.Result.GetProgress}} data-worker-status={{.Result.GetStatus}}>
-          <p class="workers-label-title">{{t "qor_worker.jobs.Status" "Status"}}</p>
-          <p class="workers-label-content">
-            <span class="qor-worker--progress-status">{{.Result.GetStatus}}</span> (<span class="qor-worker--progress-value">{{.Result.GetProgress}}</span>%)
-          </p>
-          <div id="qor-worker--progress" class="mdl-progress mdl-js-progress{{if .Result.GetResultsTable.TableCells}} has-errors-texts{{end}}"></div>
-          {{if .Result.GetResultsTable.TableCells}}
-            <a href="#" class="qor-worker--show-errors">{{t "worker.show_full_report" "Show Full Report"}}</a>
+          <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet qor-worker--progress" data-worker-progress={{$job.GetProgress}} data-worker-status={{$job.GetStatus}}>
+            <p class="workers-label-title">{{t "qor_worker.jobs.Status" "Status"}}</p>
+            <p class="workers-label-content">
+              <span class="qor-worker--progress-status">{{$job.GetStatus}}</span> (<span class="qor-worker--progress-value">{{$job.GetProgress}}</span>%)
+            </p>
+
+            <div id="qor-worker--progress" class="mdl-progress mdl-js-progress{{if $job.GetResultsTable.TableCells}} has-errors-texts{{end}}"></div>
+
+            {{if $job.GetResultsTable.TableCells}}
+              <a href="#" class="qor-worker--show-errors">{{t "worker.show_full_report" "Show Full Report"}}</a>
+            {{end}}
+          </div>
+
+          {{if $job.GetResultsTable.TableCells}}
+            <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet hidden">
+              <p class="workers-label-title">{{t "qor_worker.jobs.process_results" "Process Results"}}</p>
+              <div class="qor-table-container workers-error-output">
+                <table class="mdl-data-table mdl-js-data-table qor-table is-sortable is-upgraded">
+                  {{range $cells := $job.GetResultsTable.TableCells}}
+                    <tr>
+                      {{range $cell := $cells}}
+                        <td class="mdl-data-table__cell--non-numeric{{if $cell.Error}} worker-process-error{{end}}">
+                          {{$cell.Value}}
+                          {{if $cell.Error}}
+                            <p>{{$cell.Error}}</p>
+                          {{end}}
+                        </td>
+                      {{end}}
+                    </tr>
+                  {{end}}
+                </table>
+              </div>
+            </div>
+          {{end}}
+
+          <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
+            <p class="workers-label-title">{{t "qor_worker.jobs.Process Log" "Process Log"}}</p>
+            <div class="workers-log-output">{{range $log := $job.GetLogs}}<p>{{$log}}</p>{{end}}</div>
+          </div>
+
+          {{if $job.GetProgressText}}
+            <div class="mdl-cell mdl-cell--4-col mdl-cell--12-col-tablet">
+              <p class="workers-label-content">{{raw $job.GetProgressText}}</p>
+            </div>
           {{end}}
         </div>
 
-        {{if .Result.GetResultsTable.TableCells}}
-          <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet hidden">
-            <p class="workers-label-title">{{t "qor_worker.jobs.process_results" "Process Results"}}</p>
-            <div class="qor-table-container workers-error-output">
-              <table class="mdl-data-table mdl-js-data-table qor-table is-sortable is-upgraded">
-                {{range $cells := .Result.GetResultsTable.TableCells}}
-                  <tr>
-                    {{range $cell := $cells}}
-                      <td class="mdl-data-table__cell--non-numeric{{if $cell.Error}} worker-process-error{{end}}">
-                        {{$cell.Value}}
-                        {{if $cell.Error}}
-                          <p>{{$cell.Error}}</p>
-                        {{end}}
-                      </td>
-                    {{end}}
-                  </tr>
-                {{end}}
-              </table>
-            </div>
+
+        <div class="qor-workers-buttons">
+          <div class="qor-workers-abort{{if (or (eq $job.GetStatus "new") (eq $job.GetStatus "running"))}} show{{else}} hidden{{end}}">
+            <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent" data-url="{{url_for $job .Resource}}" data-confirm="{{t "qor_admin.form.are_you_sure"}}" data-method="DELETE">{{t "qor_worker.jobs.abort_process" "Abort Process"}}</button>
           </div>
-        {{end}}
 
-        <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
-          <p class="workers-label-title">{{t "qor_worker.jobs.Process Log" "Process Log"}}</p>
-          <div class="workers-log-output">{{range $log := .Result.GetLogs}}<p>{{$log}}</p>{{end}}</div>
-        </div>
-
-        {{if .Result.GetProgressText}}
-          <div class="mdl-cell mdl-cell--4-col mdl-cell--12-col-tablet">
-            <p class="workers-label-content">{{raw .Result.GetProgressText}}</p>
+          <div class="qor-workers-rerun{{if (eq $job.GetStatus "done")}} show{{else}} hidden{{end}}">
+            <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect" data-url="{{print (url_for $job .Resource) "/run"}}" data-confirm="{{t "qor_admin.form.are_you_sure"}}" data-method="POST">{{t "qor_worker.jobs.rerun_process" "Rerun Process"}}</button>
           </div>
-        {{end}}
-      </div>
-
-      <div class="qor-workers-buttons">
-        {{if eq .Result.GetStatus "scheduled" }}
-          <div class="qor-workers-abort">
-            <form action={{url_for .Result .Resource}} method="POST">
-              <input type="hidden" name="_method" value="DELETE"/>
-              <button type="submit" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent">{{t "qor_worker.jobs.cancel_scheduled_process" "Cancel Scheduled Process"}}</button>
-            </form>
-          </div>
-        {{end}}
-
-        <div class="qor-workers-abort{{if (or (eq .Result.GetStatus "new") (eq .Result.GetStatus "running"))}} show{{else}} hidden{{end}}">
-          <form action={{url_for .Result .Resource}} method="POST">
-            <input type="hidden" name="_method" value="DELETE"/>
-            <button type="submit" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent">{{t "qor_worker.jobs.abort_process" "Abort Process"}}</button>
-          </form>
         </div>
-
-        <div class="qor-workers-rerun{{if (eq .Result.GetStatus "done")}} show{{else}} hidden{{end}}">
-          <form action={{print (url_for .Result .Resource) "/run"}} method="POST">
-            <button type="submit" class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect">{{t "qor_worker.jobs.rerun_process" "Rerun Process"}}</button>
-          </form>
-        </div>
-      </div>
+      {{end}}
     </div>
   {{end}}
 </div>

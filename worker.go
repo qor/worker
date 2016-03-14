@@ -169,6 +169,7 @@ func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 		router.Get(fmt.Sprintf("%v/%v/edit", res.ToParam(), jobParamIDName), controller.Show)
 		router.Post(fmt.Sprintf("%v/%v/run", res.ToParam(), jobParamIDName), controller.RunJob)
 		router.Post(res.ToParam(), controller.AddJob)
+		router.Put(fmt.Sprintf("%v/%v", res.ToParam(), jobParamIDName), controller.Update)
 		router.Delete(fmt.Sprintf("%v/%v", res.ToParam(), jobParamIDName), controller.KillJob)
 	}
 }

@@ -2,6 +2,7 @@ package worker
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/qor/admin"
@@ -36,6 +37,23 @@ func (wc workerController) Show(context *admin.Context) {
 
 func (wc workerController) New(context *admin.Context) {
 	context.Execute("new", wc.Worker)
+}
+
+func (wc workerController) Update(context *admin.Context) {
+	if job, err := wc.GetJob(context.ResourceID); err == nil {
+		if context.AddError(wc.Worker.JobResource.Decode(context.Context, job)); !context.HasError() {
+			fmt.Printf("%#v \n", job.GetArgument())
+			context.AddError(wc.Worker.JobResource.CallSave(job, context.Context))
+		}
+
+		fmt.Println(context.Errors)
+		context.Execute("edit", job)
+		return
+	} else {
+		context.AddError(err)
+	}
+
+	http.Redirect(context.Writer, context.Request, context.Request.URL.Path, http.StatusFound)
 }
 
 func (wc workerController) AddJob(context *admin.Context) {
