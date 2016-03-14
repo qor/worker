@@ -46,6 +46,10 @@ func (wc workerController) Update(context *admin.Context) {
 				context.AddError(wc.Worker.AddJob(job))
 			}
 
+			if !context.HasError() {
+				context.Flash(string(context.Admin.T(context.Context, "qor_worker.form.successfully_updated", "{{.Name}} was successfully updated", wc.Worker.JobResource)), "success")
+			}
+
 			context.Execute("edit", job)
 			return
 		}
