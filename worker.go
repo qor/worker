@@ -15,6 +15,8 @@ import (
 const (
 	// JobStatusScheduled job status scheduled
 	JobStatusScheduled = "scheduled"
+	// JobStatusCancelled job status cancelled
+	JobStatusCancelled = "cancelled"
 	// JobStatusNew job status new
 	JobStatusNew = "new"
 	// JobStatusRunning job status running
@@ -220,7 +222,7 @@ func (worker *Worker) RunJob(jobID string) error {
 			}
 		}()
 
-		if qorJob.GetStatus() != JobStatusNew {
+		if qorJob.GetStatus() != JobStatusNew && qorJob.GetStatus() != JobStatusScheduled {
 			return errors.New("invalid job status, current status: " + qorJob.GetStatus())
 		}
 
