@@ -7,6 +7,9 @@
     <a class="mdl-layout__tab{{if (eq $order_by "running")}} is-active{{end}}" href={{patch_current_url "scopes" "running"}}>
       {{t "qor_worker.filter.running" "Running"}}
     </a>
+    <a class="mdl-layout__tab{{if (eq $order_by "scheduled")}} is-active{{end}}" href={{patch_current_url "scopes" "scheduled"}}>
+      {{t "qor_worker.filter.scheduled" "Scheduled"}}
+    </a>
     <a class="mdl-layout__tab{{if (eq $order_by "done")}} is-active{{end}}" href={{patch_current_url "scopes" "done"}}>
       {{t "qor_worker.filter.done" "Done"}}
     </a>

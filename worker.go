@@ -7,12 +7,14 @@ import (
 	"os"
 
 	"github.com/jinzhu/gorm"
-	"github.com/qor/qor"
 	"github.com/qor/admin"
+	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
 
 const (
+	// JobStatusScheduled job status scheduled
+	JobStatusScheduled = "scheduled"
 	// JobStatusNew job status new
 	JobStatusNew = "new"
 	// JobStatusRunning job status running
@@ -72,7 +74,7 @@ func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resource
 		worker.JobResource.IndexAttrs("ID", "Name", "Status", "CreatedAt")
 		worker.JobResource.Name = res.Name
 
-		for _, status := range []string{JobStatusNew, JobStatusRunning, JobStatusDone, JobStatusException} {
+		for _, status := range []string{JobStatusScheduled, JobStatusNew, JobStatusRunning, JobStatusDone, JobStatusException} {
 			var status = status
 			worker.JobResource.Scope(&admin.Scope{Name: status, Handle: func(db *gorm.DB, ctx *qor.Context) *gorm.DB {
 				return db.Where("status = ?", status)
