@@ -262,7 +262,8 @@ func (worker *Worker) KillJob(jobID string) error {
 				return nil
 			}
 			return err
-		} else if qorJob.GetStatus() == JobStatusNew {
+		} else if qorJob.GetStatus() == JobStatusScheduled || qorJob.GetStatus() == JobStatusNew {
+			qorJob.SetStatus(JobStatusKilled)
 			return worker.RemoveJob(jobID)
 		} else {
 			return errors.New("invalid job status")

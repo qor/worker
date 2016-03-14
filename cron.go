@@ -95,6 +95,7 @@ func (cron *Cron) Add(job QorJobInterface) (err error) {
 
 		if scheduler, ok := job.GetArgument().(Scheduler); ok && scheduler.GetScheduleTime() != nil {
 			scheduleTime := scheduler.GetScheduleTime()
+			job.SetStatus(JobStatusScheduled)
 
 			currentPath, _ := os.Getwd()
 			cron.Jobs = append(cron.Jobs, &cronJob{
@@ -162,6 +163,7 @@ func (cron *Cron) Remove(job QorJobInterface) error {
 		if cronJob.JobID == job.GetJobID() {
 			if cronJob.Pid == 0 {
 				cronJob.Delete = true
+				return nil
 			} else {
 				return errors.New("failed to remove current job as it is running")
 			}

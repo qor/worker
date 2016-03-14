@@ -79,7 +79,7 @@ func (wc workerController) KillJob(context *admin.Context) {
 		if context.AddError(wc.Worker.KillJob(qorJob.GetJobID())); !context.HasError() {
 			context.Flash(string(context.Admin.T(context.Context, "qor_worker.form.successfully_killed", "{{.Name}} was successfully killed", wc.JobResource)), "success")
 		} else {
-			context.Flash(string(context.Admin.T(context.Context, "qor_worker.form.failed_to_kill", "Failed to kill job {{.Name}} ", wc.JobResource)), "error")
+			context.Flash(string(context.Admin.T(context.Context, "qor_worker.form.failed_to_kill", "Failed to kill job {{.Name}}", wc.JobResource)), "error")
 		}
 	}
 
