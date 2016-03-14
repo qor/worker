@@ -2,7 +2,6 @@ package worker
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/qor/admin"
@@ -41,14 +40,17 @@ func (wc workerController) New(context *admin.Context) {
 
 func (wc workerController) Update(context *admin.Context) {
 	if job, err := wc.GetJob(context.ResourceID); err == nil {
-		if context.AddError(wc.Worker.JobResource.Decode(context.Context, job)); !context.HasError() {
-			fmt.Printf("%#v \n", job.GetArgument())
-			context.AddError(wc.Worker.JobResource.CallSave(job, context.Context))
+		if job.GetStatus() == JobStatusScheduled || job.GetStatus() == JobStatusNew {
+			if context.AddError(wc.Worker.JobResource.Decode(context.Context, job)); !context.HasError() {
+				context.AddError(wc.Worker.JobResource.CallSave(job, context.Context))
+				context.AddError(wc.Worker.AddJob(job))
+			}
+
+			context.Execute("edit", job)
+			return
 		}
 
-		fmt.Println(context.Errors)
-		context.Execute("edit", job)
-		return
+		context.AddError(errors.New("only allowed to update scheduled job"))
 	} else {
 		context.AddError(err)
 	}

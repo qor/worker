@@ -164,9 +164,8 @@ func (cron *Cron) Remove(job QorJobInterface) error {
 			if cronJob.Pid == 0 {
 				cronJob.Delete = true
 				return nil
-			} else {
-				return errors.New("failed to remove current job as it is running")
 			}
+			return errors.New("failed to remove current job as it is running")
 		}
 	}
 	return errors.New("failed to find job")
