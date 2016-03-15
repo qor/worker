@@ -1,6 +1,15 @@
 # Worker
 
-Worker run jobs in background at scheduled time
+Worker runs a single Job in the background, it can do so immediately or at a scheduled time.
+
+Once registered with QOR Admin, Worker will provide a `Workers` section in the navigation tree, containing pages for listing and managing the following aspects of Workers:
+	- All Jobs.
+	- Running: Jobs that are currently running.
+	- Scheduled: Jobs which have been scheduled to run at a time in the future.
+	- Done: finished Jobs.
+	- Errors: any errors output from any Workers that have been run.
+
+The admin interface for a schedulable Job will have an additional `Schedule Time` input, with which administrators can set the scheduled date and time.
 
 [![GoDoc](https://godoc.org/github.com/qor/worker?status.svg)](https://godoc.org/github.com/qor/worker)
 
@@ -19,7 +28,7 @@ func main() {
     Content      string `sql:"size:65532"`
     SendPassword string
 
-    // If job's argument has embed `worker.Schedule`, it will get run as scheduled feature
+    // If job's argument has `worker.Schedule` embedded, it will get run at a scheduled time
     worker.Schedule
   }
 
@@ -50,11 +59,18 @@ func main() {
 }
 ```
 
+## Things to note
+
+- If a Job is scheduled within 2 minutes of the current time, then it will be run immediately.
+- It is possible, via the admin interface, to abort a currently running job: view the Job's data via `Workers > Running` or `Workers > All Jobs` and press the `Abort running Job` button.
+- It is possible, via the admin interface, to abort a scheduled job: view the Job's data via `Workers > Scheduled` or `Workers > All Jobs` and press the `Cancel scheduled Job` button.
+- It is possible, via the admin interface, to update a scheduled job, including setting a new date and time: view the Job's data via `Workers > Scheduled` or `Workers > All Jobs`, update the `Schedule Time` field's value, and press the `Update scheduled Job` button. Note: scheduling a Job to a date/time in the past will see the Job get run immediately.
+
 ## [Qor Support](https://github.com/qor/qor)
 
-[QOR](http://getqor.com) is architected from the ground up to accelerate development and deployment of Content Management Systems, E-commerce Systems, and Business Applications, and comprised of modules that abstract common features for such system.
+[QOR](http://getqor.com) is architected from the ground up to accelerate development and deployment of Content Management Systems, E-commerce Systems, and Business Applications and as such is comprised of modules that abstract common features for such systems.
 
-Worker is a plugin of Qor Admin, if you have requirements to manage your application's data, be sure to check QOR out!
+Worker is a Plugin of Qor Admin - if you have requirements to manage your application's data be sure to check QOR out!
 
 [Worker Demo:  http://demo.getqor.com/admin/workers](http://demo.getqor.com/admin/workers)
 
