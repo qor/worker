@@ -5,6 +5,7 @@ Worker runs a single Job in the background, it can do so immediately or at a sch
 Once registered with QOR Admin, Worker will provide a `Workers` section in the navigation tree, containing pages for listing and managing the following aspects of Workers:
 	- All Jobs.
 	- Running: Jobs that are currently running.
+	- Scheduled: Jobs which have been scheduled to run at a time in the future.
 	- Done: finished Jobs.
 	- Errors: any errors output from any Workers that have been run.
 
@@ -61,8 +62,9 @@ func main() {
 ## Things to note
 
 - If a Job is scheduled within 2 minutes of the current time, then it will be run immediately.
-- It is possible, via the admin interface, to abort a currently running job: view the Job's data via `Worker > Running` or `Worker > All Jobs` and press the `Abort running Job` button.
-- It is possible, via the admin interface, to abort a scheduled job: view the Job's data via `Worker > All Jobs` and press the `Abort scheduled Job` button.
+- It is possible, via the admin interface, to abort a currently running job: view the Job's data via `Workers > Running` or `Workers > All Jobs` and press the `Abort running Job` button.
+- It is possible, via the admin interface, to abort a scheduled job: view the Job's data via `Workers > Scheduled` or `Workers > All Jobs` and press the `Cancel scheduled Job` button.
+- It is possible, via the admin interface, to update a scheduled job, including setting a new date and time: view the Job's data via `Workers > Scheduled` or `Workers > All Jobs`, update the `Schedule Time` field's value, and press the `Update scheduled Job` button. Note: scheduling a Job to a date/time in the past will see the Job get run immediately.
 
 ## [Qor Support](https://github.com/qor/qor)
 
