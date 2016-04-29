@@ -79,6 +79,15 @@ func (wc workerController) AddJob(context *admin.Context) {
 		result.SetJob(job)
 		context.AddError(jobResource.CallSave(result, context.Context))
 		context.AddError(wc.Worker.AddJob(result))
+	} else {
+		responder.With("html", func() {
+			context.Writer.WriteHeader(422)
+			context.Execute("edit", result)
+		}).With("json", func() {
+			context.Writer.WriteHeader(422)
+			context.JSON("index", map[string]interface{}{"errors": context.GetErrors()})
+		}).Respond(context.Request)
+		return
 	}
 
 	if !context.HasError() {
