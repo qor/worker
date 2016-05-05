@@ -9,9 +9,23 @@
 }
 
 .qor-worker-form-list{
+    padding-left: 16px;
+    .qor-field{
+        padding: 0;
+    }
+    .qor-field__block{
+        padding-bottom: 0;
+    }
+    .qor-form__actions{
+        margin-top: 0;
+        .mdl-button{
+            float: left;
+        }
+    }
 	.qor-worker--new{
 		margin: 2px 0;
 		display: inline-block;
+        text-decoration: none;
 	}
 }
 
