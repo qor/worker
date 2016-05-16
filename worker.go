@@ -124,9 +124,11 @@ func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resource
 func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
 		// Parse job
-		var qorJobID = flag.String("qor-job", "", "Qor Job ID")
-		var runAnother = flag.Bool("run-another", false, "Run another qor job")
-		flag.Parse()
+		cmdLine := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+		qorJobID := cmdLine.String("qor-job", "", "Qor Job ID")
+		runAnother := cmdLine.Bool("run-another", false, "Run another qor job")
+		cmdLine.Parse(os.Args[1:])
+
 		if *qorJobID != "" {
 			if *runAnother == true {
 				if newJob := worker.saveAnotherJob(*qorJobID); newJob != nil {
