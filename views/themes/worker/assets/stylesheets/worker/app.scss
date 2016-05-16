@@ -12,6 +12,11 @@
     padding-left: 16px;
     .qor-field{
         padding: 0;
+        margin-bottom: 20px;
+        .mdl-textfield{
+            margin-bottom: -20px;
+            padding: 10px 0 20px 0;
+        }
     }
     .qor-field__block{
         padding-bottom: 0;
