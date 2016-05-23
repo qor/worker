@@ -188,6 +188,16 @@ func (worker *Worker) RegisterJob(job *Job) error {
 	return nil
 }
 
+// GetRegisteredJob register a job into Worker
+func (worker *Worker) GetRegisteredJob(name string) *Job {
+	for _, job := range worker.Jobs {
+		if job.Name == name {
+			return job
+		}
+	}
+	return nil
+}
+
 // GetJob get job with id
 func (worker *Worker) GetJob(jobID string) (QorJobInterface, error) {
 	qorJob := worker.JobResource.NewStruct().(QorJobInterface)

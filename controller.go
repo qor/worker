@@ -65,13 +65,7 @@ func (wc workerController) Update(context *admin.Context) {
 func (wc workerController) AddJob(context *admin.Context) {
 	jobResource := wc.Worker.JobResource
 	result := jobResource.NewStruct().(QorJobInterface)
-
-	var job *Job
-	for _, j := range wc.Worker.Jobs {
-		if j.Name == context.Request.Form.Get("job_name") {
-			job = j
-		}
-	}
+	job := wc.Worker.GetRegisteredJob(context.Request.Form.Get("job_name"))
 	result.SetJob(job)
 
 	if context.AddError(jobResource.Decode(context.Context, result)); !context.HasError() {
