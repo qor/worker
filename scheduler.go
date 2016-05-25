@@ -15,7 +15,7 @@ type Schedule struct {
 // GetScheduleTime get scheduled time
 func (schedule Schedule) GetScheduleTime() *time.Time {
 	if scheduleTime := schedule.ScheduleTime; scheduleTime != nil {
-		if scheduleTime.After(time.Now().Add(2 * time.Minute)) {
+		if scheduleTime.After(time.Now().Add(time.Minute)) {
 			return scheduleTime
 		}
 	}
