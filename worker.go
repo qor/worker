@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime/debug"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
@@ -230,6 +231,7 @@ func (worker *Worker) RunJob(jobID string) error {
 	if err == nil {
 		defer func() {
 			if r := recover(); r != nil {
+				qorJob.AddLog(string(debug.Stack()))
 				qorJob.SetProgressText(fmt.Sprint(r))
 				qorJob.SetStatus(JobStatusException)
 			}
