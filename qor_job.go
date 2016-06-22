@@ -9,8 +9,8 @@ import (
 	"sync"
 
 	"github.com/jinzhu/gorm"
-	"github.com/qor/audited"
 	"github.com/qor/admin"
+	"github.com/qor/audited"
 	"github.com/qor/serializable_meta"
 )
 
