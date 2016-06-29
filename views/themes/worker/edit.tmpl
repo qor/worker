@@ -12,7 +12,7 @@
   {{render "shared/errors"}}
 
   {{if $job}}
-    <div class="qor-form-container">
+    <div class="qor-form-container clearfix">
       {{if eq $job.GetStatus "scheduled"}}
         <div class="qor-workers-buttons">
           <div>
@@ -38,7 +38,7 @@
             <p class="workers-label-content">{{$job.GetJobName}}</p>
           </div>
 
-          <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet qor-worker--progress" data-worker-progress={{$job.GetProgress}} data-worker-status={{$job.GetStatus}}>
+          <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet qor-worker--progress" data-status-name={{t "qor_worker.jobs.Status" "Status"}} data-progress={{$job.GetProgress}} data-status={{$job.GetStatus}}>
             <p class="workers-label-title">{{t "qor_worker.jobs.Status" "Status"}}</p>
             <p class="workers-label-content">
               <span class="qor-worker--progress-status">{{$job.GetStatus}}</span> (<span class="qor-worker--progress-value">{{$job.GetProgress}}</span>%)
