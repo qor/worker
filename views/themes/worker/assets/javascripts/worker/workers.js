@@ -90,6 +90,7 @@
 
     destroy: function () {
       this.unbind();
+      QorWorker.getWorkerProgressIntervId && window.clearInterval(QorWorker.getWorkerProgressIntervId);
       $.fn.qorSliderAfterShow.updateWorkerProgress = null;
     }
 
@@ -153,12 +154,17 @@
     var $progressValue = $('.qor-worker--progress-value');
     var $progressStatusStatus = $('.qor-worker--progress-status');
     var $progress = $(CLASS_WORKER_PROGRESS);
-    var progressData = $(CLASS_WORKER_PROGRESS).data();
+    var $selectTR = $(CLASS_TABLE).find(CLASS_SELECT);
 
-    var orignialStatus = $(CLASS_TABLE).find(CLASS_SELECT).find('td[data-heading="' + progressData.statusName + '"]').find('.qor-table__content').html();
+    if ($progress.size()) {
+      var progressData = $progress.data();
+    }
 
+    if ($selectTR.size()) {
+      var orignialStatus = $selectTR.find('td[data-heading="' + progressData.statusName + '"]').find('.qor-table__content').html();
+    }
 
-    if (!$progress.size()) {
+    if (!$progress.size() || !$progress.size() || progressData.status == 'killed') {
       window.clearInterval(QorWorker.getWorkerProgressIntervId);
       return;
     }
