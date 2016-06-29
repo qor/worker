@@ -19,6 +19,7 @@
   var EVENT_CLICK = 'click.' + NAMESPACE;
   var CLASS_NEW_WORKER = '.qor-worker--new';
   var CLASS_WORKER_ERRORS = '.qor-worker--show-errors';
+  var CLASS_WORKER_LIST = '.qor-worker-form-list';
 
   function QorWorker(element, options) {
     this.$element = $(element);
@@ -30,6 +31,7 @@
     constructor: QorWorker,
 
     init: function () {
+
       var $this = this.$element;
       this.bind();
     },
@@ -59,11 +61,18 @@
       }
 
       if ($target.is(CLASS_NEW_WORKER)){
-        var $targetParent = $target.parent();
+        var $targetParent = $target.closest(CLASS_WORKER_LIST);
 
+        $(CLASS_WORKER_LIST).removeClass('current');
         $targetParent.addClass('current');
-        $('.qor-worker-form-list').not('current').find('form').addClass('hidden');
+
+        var $list = $(CLASS_WORKER_LIST).not('.current');
+
+        $list.find('form').addClass('hidden');
+        $list.find(CLASS_NEW_WORKER).removeClass('open');
+
         $target.next('form').toggleClass('hidden');
+        $target.toggleClass('open');
       }
     }
   };

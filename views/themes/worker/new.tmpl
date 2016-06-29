@@ -6,31 +6,39 @@
   {{render "shared/flashes"}}
   {{render "shared/errors"}}
 
-  <div class="qor-form-container">
+  <div class="qor-form-container" data-slideout-type="mini">
     <div data-toggle="qor.workers">
+      <ul class="qor-worker-form">
       {{range $title, $jobs := $grouped_jobs}}
-        {{if $title}}
-          <h5 class="qor-slideout__sub-title">{{t (print "qor_worker.job_groups." $title) $title}}</h5>
-        {{end}}
+        <li>
+          {{if $title}}
+            <h5 class="qor-slideout__sub-title">{{t (print "qor_worker.job_groups." $title) $title}}</h5>
+          {{else}}
+            {{if eq (len $jobs) 1}}
+              <h5 class="qor-slideout__sub-title">{{range $job := $jobs}}{{$job.Name}}{{end}}</h5>
+            {{end}}
+          {{end}}
 
-        {{$show_form := (and (eq (len $grouped_jobs) 1) (eq (len $jobs) 1))}}
-        {{range $job := $jobs}}
-          <div class="qor-worker-form-list">
-            <a href="#" class="qor-worker--new">{{t (print "qor_worker.jobs." $job.Name) $job.Name}}</a>
-            <form action="{{url_for $resource}}" method="POST" {{if not $show_form}}class="hidden"{{end}}>
-              <fieldset class="qor-fieldset">
-                <input name="job_name" value={{$job.Name}} type="hidden">
+          {{$show_form := (and (eq (len $grouped_jobs) 1) (eq (len $jobs) 1))}}
+          {{range $job := $jobs}}
+            <div class="qor-worker-form-list {{if not $title}}{{if gt (len $jobs) 1}}no-title{{end}}{{end}}">
+              <a href="#" class="qor-worker--new">{{t (print "qor_worker.jobs." $job.Name) $job.Name}}</a>
+              <form action="{{url_for $resource}}" method="POST" {{if not $show_form}}class="hidden"{{end}}>
+                <fieldset class="qor-fieldset">
+                  <input name="job_name" value={{$job.Name}} type="hidden">
 
-                {{render_form $job.NewStruct (new_sections $worker.JobResource)}}
+                  {{render_form $job.NewStruct (new_sections $worker.JobResource)}}
 
-                <div class="qor-form__actions">
-                  <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t (print "qor_worker.jobs." $job.Name) $job.Name}}</button>
-                </div>
-              </fieldset>
-            </form>
-          </div>
-        {{end}}
+                  <div class="qor-form__actions">
+                    <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t (print "qor_worker.jobs." $job.Name) $job.Name}}</button>
+                  </div>
+                </fieldset>
+              </form>
+            </div>
+          {{end}}
+        </li>
       {{end}}
+      </ul>
     </div>
   </div>
 </div>
