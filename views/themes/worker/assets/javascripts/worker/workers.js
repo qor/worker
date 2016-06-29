@@ -20,6 +20,7 @@
   var CLASS_NEW_WORKER = '.qor-worker--new';
   var CLASS_WORKER_ERRORS = '.qor-worker--show-errors';
   var CLASS_WORKER_LIST = '.qor-worker-form-list';
+  var CLASS_WORKER_PROGRESS= '.qor-worker--progress';
 
   function QorWorker(element, options) {
     this.$element = $(element);
@@ -31,8 +32,6 @@
     constructor: QorWorker,
 
     init: function () {
-
-      var $this = this.$element;
       this.bind();
     },
 
@@ -113,40 +112,46 @@
     });
   };
 
-  $.fn.qorSliderAfterShow.qorWorkInit = function (url, html) {
-    QorWorker.getWorkerProgressIntervId = window.setInterval(QorWorker.getWorkerProgress, 1000, url, html);
+  $.fn.qorSliderAfterShow.updateWorkerProgress = function (url) {
+    QorWorker.getWorkerProgressIntervId = window.setInterval(QorWorker.updateWorkerProgress, 1000, url);
   };
 
   QorWorker.isScrollToBottom = function (element) {
     return element.clientHeight + element.scrollTop === element.scrollHeight;
   };
 
-  QorWorker.getWorkerProgress = function (url, html) {
+  QorWorker.updateWorkerProgress = function (url) {
     var progressURL = url;
     var $logContainer = $('.workers-log-output');
     var $progressValue = $('.qor-worker--progress-value');
     var $progressStatusStatus = $('.qor-worker--progress-status');
     var workerProgress = document.querySelector('#qor-worker--progress');
 
-    if ($('.qor-worker--progress').data('worker-progress') == 100){
+    console.log($(CLASS_WORKER_PROGRESS));
+    console.log('progress:' + $(CLASS_WORKER_PROGRESS).data('worker-progress'));
+
+    if (!$(CLASS_WORKER_PROGRESS).size()) {
       window.clearInterval(QorWorker.getWorkerProgressIntervId);
-      document.querySelector('#qor-worker--progress').MaterialProgress.setProgress(100);
+    }
+
+    if ($(CLASS_WORKER_PROGRESS).data('worker-progress') >= 100){
+      window.clearInterval(QorWorker.getWorkerProgressIntervId);
+      workerProgress.MaterialProgress.setProgress(100);
       $('.qor-workers-abort').addClass('hidden');
       $('.qor-workers-rerun').removeClass('hidden');
       return;
     }
 
     $.ajax({
-      url: progressURL
+      url: progressURL,
+      method: 'GET',
+      dataType: 'html',
+      processData: false,
+      contentType: false
     }).done(function (html) {
-      var $content = $(html).find('.qor-form-container');
-      var currentStatus = $content.find('.qor-worker--progress').data('worker-progress');
-      var progressStatusStatus = $content.find('.qor-worker--progress').data('worker-status');
-
-      if (!currentStatus){
-        window.clearInterval(QorWorker.getWorkerProgressIntervId);
-        return;
-      }
+      var $content = $(html).find(CLASS_WORKER_PROGRESS);
+      var currentStatus = $content.data('worker-progress');
+      var progressStatusStatus = $content.data('worker-status');
 
       $progressValue.html(currentStatus);
       $progressStatusStatus.html(progressStatusStatus);
@@ -177,8 +182,10 @@
         $('.qor-workers-abort').addClass('hidden');
         $('.qor-workers-rerun').removeClass('hidden');
       }
+
     });
   };
+
 
   $(function () {
     var selector = '[data-toggle="qor.workers"]';
