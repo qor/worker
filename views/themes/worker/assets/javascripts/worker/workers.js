@@ -125,20 +125,23 @@
     var $logContainer = $('.workers-log-output');
     var $progressValue = $('.qor-worker--progress-value');
     var $progressStatusStatus = $('.qor-worker--progress-status');
-    var workerProgress = document.querySelector('#qor-worker--progress');
 
-    console.log($(CLASS_WORKER_PROGRESS));
-    console.log('progress:' + $(CLASS_WORKER_PROGRESS).data('worker-progress'));
 
     if (!$(CLASS_WORKER_PROGRESS).size()) {
       window.clearInterval(QorWorker.getWorkerProgressIntervId);
+      return;
     }
 
     if ($(CLASS_WORKER_PROGRESS).data('worker-progress') >= 100){
+
       window.clearInterval(QorWorker.getWorkerProgressIntervId);
-      workerProgress.MaterialProgress.setProgress(100);
+
+      document.querySelector('#qor-worker--progress').MaterialProgress.setProgress(100);
+
+
       $('.qor-workers-abort').addClass('hidden');
       $('.qor-workers-rerun').removeClass('hidden');
+
       return;
     }
 
@@ -149,7 +152,8 @@
       processData: false,
       contentType: false
     }).done(function (html) {
-      var $content = $(html).find(CLASS_WORKER_PROGRESS);
+      var $html = $(html);
+      var $content = $html.find(CLASS_WORKER_PROGRESS);
       var currentStatus = $content.data('worker-progress');
       var progressStatusStatus = $content.data('worker-status');
 
@@ -157,13 +161,12 @@
       $progressStatusStatus.html(progressStatusStatus);
 
       // set status progress
-      if (workerProgress && workerProgress.MaterialProgress){
-        workerProgress.MaterialProgress.setProgress(currentStatus);
-      }
+      document.querySelector('#qor-worker--progress').MaterialProgress.setProgress(currentStatus);
+
 
       // update process log
       var oldLog = $.trim($logContainer.html());
-      var newLog = $.trim($content.find('.workers-log-output').html());
+      var newLog = $.trim($html.find('.workers-log-output').html());
       var newLogHtml;
 
       if (newLog != oldLog){
