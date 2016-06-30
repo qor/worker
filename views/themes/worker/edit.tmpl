@@ -12,33 +12,26 @@
   {{render "shared/errors"}}
 
   {{if $job}}
-    <div class="qor-form-container clearfix">
+    <div class="qor-form-container qor-workers--details clearfix">
+      <!-- <ul> -->
       {{if eq $job.GetStatus "scheduled"}}
-        <div class="qor-workers-buttons">
-          <div>
-            <p class="workers-label-title">{{t "qor_worker.jobs.Job Name" "Job Name"}}</p>
-            <p class="workers-label-content">{{$job.GetJobName}}</p>
-          </div>
+        <h5 class="workers-label">{{$job.GetJobName}}</h5>
 
-          <div class="qor-workers-abort">
-            <form action={{url_for $job .Resource}} method="POST">
-              <input type="hidden" name="_method" value="PUT"/>
-              {{render_form $job (new_sections $job.GetJob.Worker.JobResource)}}
-
+        <div class="qor-workers-abort">
+          <form action={{url_for $job .Resource}} method="POST">
+            <input type="hidden" name="_method" value="PUT"/>
+            {{render_form $job (new_sections $job.GetJob.Worker.JobResource)}}
+            <div class="qor-form__actions">
               <button type="submit" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect">{{t "qor_worker.jobs.update_scheduled_job" "Update Scheduled Job"}}</button>
-            </form>
-
-            <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent" data-url="{{url_for $job .Resource}}" data-confirm="{{t "qor_admin.form.are_you_sure"}}" data-method="DELETE">{{t "qor_worker.jobs.cancel_scheduled_job" "Cancel Scheduled Job"}}</button>
-          </div>
+              <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent" data-url="{{url_for $job .Resource}}" data-confirm="{{t "qor_admin.form.are_you_sure"}}" data-method="DELETE">{{t "qor_worker.jobs.cancel_scheduled_job" "Cancel Scheduled Job"}}</button>
+            </div>
+          </form>
         </div>
       {{else}}
-        <div class="mdl-grid" data-toggle="qor.workers">
-          <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
-            <p class="workers-label-title">{{t "qor_worker.jobs.Job Name" "Job Name"}}</p>
-            <p class="workers-label-content">{{$job.GetJobName}}</p>
-          </div>
+        <div data-toggle="qor.workers">
+          <h5 class="workers-label">{{$job.GetJobName}}</h5>
 
-          <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet qor-worker--progress" data-status-name={{t "qor_worker.jobs.Status" "Status"}} data-progress={{$job.GetProgress}} data-status={{$job.GetStatus}}>
+          <div class="qor-worker--progress clearfix" data-status-name={{t "qor_worker.jobs.Status" "Status"}} data-progress={{$job.GetProgress}} data-status={{$job.GetStatus}}>
             <p class="workers-label-title">{{t "qor_worker.jobs.Status" "Status"}}</p>
             <p class="workers-label-content">
               <span class="qor-worker--progress-status">{{$job.GetStatus}}</span> (<span class="qor-worker--progress-value">{{$job.GetProgress}}</span>%)
@@ -52,7 +45,7 @@
           </div>
 
           {{if $job.GetResultsTable.TableCells}}
-            <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet hidden">
+            <div class="hidden">
               <p class="workers-label-title">{{t "qor_worker.jobs.job_reports" "Job Reports"}}</p>
               <div class="qor-table-container workers-error-output">
                 <table class="mdl-data-table mdl-js-data-table qor-table is-sortable is-upgraded">
@@ -73,29 +66,30 @@
             </div>
           {{end}}
 
-          <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
+          <div>
             <p class="workers-label-title">{{t "qor_worker.jobs.job_log" "Job Log"}}</p>
             <div class="workers-log-output">{{range $log := $job.GetLogs}}<p>{{$log}}</p>{{end}}</div>
           </div>
 
           {{if $job.GetProgressText}}
-            <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet">
+            <div>
               <p class="workers-label-content">{{raw $job.GetProgressText}}</p>
             </div>
           {{end}}
-        </div>
 
 
-        <div class="qor-workers-buttons">
-          <div class="qor-workers-abort{{if (or (eq $job.GetStatus "new") (eq $job.GetStatus "running"))}} show{{else}} hidden{{end}}">
-            <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent" data-url="{{url_for $job .Resource}}" data-confirm="{{t "qor_admin.form.are_you_sure"}}" data-method="DELETE">{{t "qor_worker.jobs.abort_job" "Abort Job"}}</button>
-          </div>
+          <div class="qor-workers-buttons">
+            <div class="qor-workers-abort{{if (or (eq $job.GetStatus "new") (eq $job.GetStatus "running"))}} show{{else}} hidden{{end}}">
+              <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent" data-url="{{url_for $job .Resource}}" data-confirm="{{t "qor_admin.form.are_you_sure"}}" data-method="DELETE">{{t "qor_worker.jobs.abort_job" "Abort Job"}}</button>
+            </div>
 
-          <div class="qor-workers-rerun{{if (eq $job.GetStatus "done")}} show{{else}} hidden{{end}}">
-            <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect" data-url="{{print (url_for $job .Resource) "/run"}}" data-confirm="{{t "qor_admin.form.are_you_sure"}}" data-method="POST">{{t "qor_worker.jobs.rerun_job" "Rerun Job"}}</button>
+            <div class="qor-workers-rerun{{if (eq $job.GetStatus "done")}} show{{else}} hidden{{end}}">
+              <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect" data-url="{{print (url_for $job .Resource) "/run"}}" data-confirm="{{t "qor_admin.form.are_you_sure"}}" data-method="POST">{{t "qor_worker.jobs.rerun_job" "Rerun Job"}}</button>
+            </div>
           </div>
         </div>
       {{end}}
     </div>
   {{end}}
+
 </div>

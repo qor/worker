@@ -19,8 +19,10 @@
   var EVENT_CLICK = 'click.' + NAMESPACE;
   var CLASS_NEW_WORKER = '.qor-worker--new';
   var CLASS_WORKER_ERRORS = '.qor-worker--show-errors';
+  var CLASS_WORKER_CONTAINER = '.qor-worker-form';
   var CLASS_WORKER_LIST = '.qor-worker-form-list';
   var CLASS_WORKER_PROGRESS= '.qor-worker--progress';
+  var CLASS_BUTTON_BACK= '.qor-button--back';
   var CLASS_TABLE= '.qor-js-table';
   var CLASS_SELECT= '.is-selected';
 
@@ -41,51 +43,74 @@
     },
 
     bind: function () {
-      this.$element.on(EVENT_CLICK, $.proxy(this.click, this));
+      this.$element
+        .on(EVENT_CLICK, CLASS_WORKER_ERRORS, $.proxy(this.showError, this))
+        .on(EVENT_CLICK, CLASS_NEW_WORKER, $.proxy(this.showForm, this))
+        .on(EVENT_CLICK, CLASS_BUTTON_BACK, $.proxy(this.hideForm, this));
     },
 
     unbind: function () {
-      this.$element.off(EVENT_CLICK, $.proxy(this.click, this));
+      this.$element
+        .off(EVENT_CLICK, CLASS_WORKER_ERRORS, this.showError, this)
+        .off(EVENT_CLICK, CLASS_NEW_WORKER, this.showForm, this)
+        .off(EVENT_CLICK, CLASS_BUTTON_BACK, this.hideForm, this);
     },
 
-    click: function (e) {
+    showError: function (e) {
+      e.preventDefault();
+
+      var $workerErrorModal = $(QorWorker.POPOVERTEMPLATE).appendTo('body');
+      var url = $('tr.is-selected .qor-button--edit').attr('href');
+      $workerErrorModal.qorModal('show');
+
+      $.ajax({
+        url: url,
+        method: 'GET',
+        dataType: 'html',
+        processData: false,
+        contentType: false
+      }).done(function (html) {
+        var $content = $(html).find('.qor-form-container');
+        var $errorTable = $content.find('.workers-error-output');
+        if ($errorTable){
+          $errorTable.appendTo($workerErrorModal.find('#qor-worker-errors'));
+        }
+      });
+
+    },
+
+    hideForm: function (e) {
+
+      e.preventDefault();
+
+      var $parent = this.$element;
+      var $lists = $parent.find(CLASS_WORKER_CONTAINER).find('>li');
+
+      $lists.show().removeClass('current').find('form').addClass('hidden');
+      $(CLASS_BUTTON_BACK).addClass('hidden');
+      $(CLASS_WORKER_LIST).show();
+
+      window.onbeforeunload = null;
+      $.fn.qorSlideoutBeforeHide = null;
+
+    },
+
+    showForm: function (e) {
       var $target = $(e.target);
-      e.stopPropagation();
+      e.preventDefault();
 
-      if ($target.is(CLASS_WORKER_ERRORS)){
-        var $workerErrorModal = $(QorWorker.POPOVERTEMPLATE).appendTo('body');
-        var url = $('tr.is-selected .qor-button--edit').attr('href');
-        $workerErrorModal.qorModal('show');
+      var $targetList = $target.closest('li');
+      var $parent = $target.closest(CLASS_WORKER_CONTAINER);
+      var $parentList = $target.closest(CLASS_WORKER_LIST);
+      var $lists = $parent.find('>li');
 
-        $.ajax({
-          url: url,
-          method: 'GET',
-          dataType: 'html',
-          processData: false,
-          contentType: false
-        }).done(function (html) {
-          var $content = $(html).find('.qor-form-container');
-          var $errorTable = $content.find('.workers-error-output');
-          if ($errorTable){
-            $errorTable.appendTo($workerErrorModal.find('#qor-worker-errors'));
-          }
-        });
-      }
+      $lists.hide().removeClass('current');
 
-      if ($target.is(CLASS_NEW_WORKER)){
-        var $targetParent = $target.closest(CLASS_WORKER_LIST);
+      $targetList.addClass('current').show();
+      $(CLASS_BUTTON_BACK).removeClass('hidden');
+      $targetList.find(CLASS_WORKER_LIST).hide();
 
-        $(CLASS_WORKER_LIST).removeClass('current');
-        $targetParent.addClass('current');
-
-        var $list = $(CLASS_WORKER_LIST).not('.current');
-
-        $list.find('form').addClass('hidden');
-        $list.find(CLASS_NEW_WORKER).removeClass('open');
-
-        $target.next('form').toggleClass('hidden');
-        $target.toggleClass('open');
-      }
+      $parentList.show().find('form').removeClass('hidden');
     },
 
     destroy: function () {
