@@ -25,7 +25,7 @@
           {{range $job := $jobs}}
             <div class="qor-worker-form-list {{if not $title}}{{if gt (len $jobs) 1}}no-title{{end}}{{end}}">
               <a href="#" class="qor-worker--new">{{t (print "qor_worker.jobs." $job.Name) $job.Name}}</a>
-              <form action="{{url_for $resource}}" method="POST" {{if not $show_form}}class="hidden"{{end}}>
+              <form action="{{url_for $resource}}" data-refresh-url="{{url_for $resource}}" method="POST" {{if not $show_form}}class="hidden"{{end}}>
                 <input name="job_name" value={{$job.Name}} type="hidden">
                 {{render_form $job.NewStruct (new_sections $worker.JobResource)}}
 
