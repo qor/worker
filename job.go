@@ -2,6 +2,7 @@ package worker
 
 import (
 	"github.com/qor/admin"
+	"github.com/qor/qor"
 	"github.com/qor/roles"
 )
 
@@ -10,7 +11,7 @@ type Job struct {
 	Name       string
 	Group      string
 	Handler    func(interface{}, QorJobInterface) error
-	Permission roles.Permission
+	Permission *roles.Permission
 	Queue      Queue
 	Resource   *admin.Resource
 	Worker     *Worker
@@ -29,4 +30,11 @@ func (job *Job) GetQueue() Queue {
 		return job.Queue
 	}
 	return job.Worker.Queue
+}
+
+func (job Job) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
+	if job.Permission == nil {
+		return true
+	}
+	return job.Permission.HasPermission(mode, context.Roles...)
 }

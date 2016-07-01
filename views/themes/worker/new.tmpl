@@ -9,7 +9,7 @@
   <div class="qor-form-container">
     <div data-toggle="qor.workers">
       <a class="qor-button--back hidden" href="#">
-        <i class="material-icons">arrow_back</i><span>{{t "qor_worker.new_worker.back to worker lists" "back to worker lists"}}</span>
+        <i class="material-icons">arrow_back</i><span>{{t "qor_worker.actions.back_to_lists" "Back To Lists"}}</span>
       </a>
       <ul class="qor-worker-form">
       {{range $title, $jobs := $grouped_jobs}}
@@ -19,7 +19,7 @@
           {{if $title}}
             <h5>{{t (print "qor_worker.job_groups." $title) $title}}</h5>
           {{else}}
-            <h5>{{t "qor_worker.new_worker.worker jobs" "Worker Jobs"}}</h5>
+            <h5>{{t "qor_worker.new_worker.worker_jobs" "Worker Jobs"}}</h5>
           {{end}}
 
           {{range $job := $jobs}}
