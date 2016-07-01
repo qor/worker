@@ -22,6 +22,7 @@
   var CLASS_WORKER_CONTAINER = '.qor-worker-form';
   var CLASS_WORKER_LIST = '.qor-worker-form-list';
   var CLASS_WORKER_PROGRESS= '.qor-worker--progress';
+  var CLASS_WORKER_SHOW= '.qor-worker-form--show';
   var CLASS_BUTTON_BACK= '.qor-button--back';
   var CLASS_TABLE= '.qor-js-table';
   var CLASS_SELECT= '.is-selected';
@@ -37,9 +38,15 @@
 
     init: function () {
       this.bind();
+      this.formOpened = false;
       if ($(CLASS_WORKER_PROGRESS).size()) {
         $.fn.qorSliderAfterShow.updateWorkerProgress();
       }
+
+      if ($(CLASS_WORKER_SHOW).size()) {
+        this.formOpened = true;
+      }
+
     },
 
     bind: function () {
@@ -90,6 +97,8 @@
       $(CLASS_BUTTON_BACK).addClass('hidden');
       $(CLASS_WORKER_LIST).show();
 
+      this.formOpened = false;
+
       window.onbeforeunload = null;
       $.fn.qorSlideoutBeforeHide = null;
 
@@ -98,6 +107,10 @@
     showForm: function (e) {
       var $target = $(e.target);
       e.preventDefault();
+
+      if (this.formOpened) {
+        return;
+      }
 
       var $targetList = $target.closest('li');
       var $parent = $target.closest(CLASS_WORKER_CONTAINER);
@@ -111,6 +124,7 @@
       $targetList.find(CLASS_WORKER_LIST).hide();
 
       $parentList.show().find('form').removeClass('hidden');
+      this.formOpened = true;
     },
 
     destroy: function () {
