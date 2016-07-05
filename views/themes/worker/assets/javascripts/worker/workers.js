@@ -199,7 +199,7 @@
       var progressData = $progress.data();
     }
 
-    if ($selectTR.size()) {
+    if ($selectTR.size() && progressData && progressData.statusName) {
       var orignialStatus = $selectTR.find('td[data-heading="' + progressData.statusName + '"]').find('.qor-table__content').html();
     }
 

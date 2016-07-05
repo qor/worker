@@ -66,10 +66,12 @@
             </div>
           {{end}}
 
+          {{if gt (len $job.GetLogs) 1}}
           <div>
             <p class="workers-label-title">{{t "qor_worker.jobs.job_log" "Job Log"}}</p>
             <div class="workers-log-output">{{range $log := $job.GetLogs}}<p>{{$log}}</p>{{end}}</div>
           </div>
+          {{end}}
 
           {{if $job.GetProgressText}}
             <div>
