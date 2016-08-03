@@ -27,6 +27,18 @@
             </div>
           </form>
         </div>
+
+
+        {{if $job.GetArgument.GetRepeatTime }}
+            {{if gt (len $job.GetLogs) 1}}
+             <div data-toggle="qor.workers">
+                  <div>
+                    <p class="workers-label-title">{{t "qor_worker.jobs.job_log" "Job Log"}}</p>
+                    <div class="workers-log-output">{{range $log := $job.GetLogs}}<p>{{$log}}</p>{{end}}</div>
+                  </div>
+              </div>
+              {{end}}
+          {{end}}
       {{else}}
         <div data-toggle="qor.workers">
           <h5 class="workers-label">{{$job.GetJobName}}</h5>

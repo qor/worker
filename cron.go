@@ -101,18 +101,20 @@ func (cron *Cron) Add(job QorJobInterface) (err error) {
 			}
 		}
 
-
-
-
 		if scheduler, ok := job.GetArgument().(Scheduler); ok {
 			scheduleTime := scheduler.GetScheduleTime()
 			repeatTime := scheduler.GetRepeatTime()
-			job.SetStatus(JobStatusScheduled)
-			if scheduleTime == nil {
+			if scheduleTime == nil && repeatTime != nil{
 				newTime := time.Now()
 				scheduleTime = &newTime
+			} else {
+				job.SetStatus(JobStatusRunning)
+				execCommand(job, binaryFile, jobs)
+				cron.Jobs = jobs
+				return
 			}
 
+			job.SetStatus(JobStatusScheduled)
 			minute := strconv.Itoa(scheduleTime.Minute())
 			hour := strconv.Itoa(scheduleTime.Hour())
 			day := strconv.Itoa(scheduleTime.Day())
@@ -141,11 +143,7 @@ func (cron *Cron) Add(job QorJobInterface) (err error) {
 				Command: fmt.Sprintf("%s %s %s %s * cd %v; %v --qor-job %v\n", minute , hour , day, month, currentPath, binaryFile, job.GetJobID()),
 			})
 		} else {
-			cmd := exec.Command(binaryFile, "--qor-job", job.GetJobID())
-			if err = cmd.Start(); err == nil {
-				jobs = append(jobs, &cronJob{JobID: job.GetJobID(), Pid: cmd.Process.Pid})
-				cmd.Process.Release()
-			}
+			execCommand(job, binaryFile, jobs)
 		}
 		cron.Jobs = jobs
 	}
@@ -217,4 +215,17 @@ func (cron *Cron) Remove(job QorJobInterface) error {
 		}
 	}
 	return errors.New("failed to find job")
+}
+
+
+
+func execCommand(job QorJobInterface, binaryFile string, jobs []*cronJob) error {
+	var err error
+	cmd := exec.Command(binaryFile, "--qor-job", job.GetJobID())
+	if err := cmd.Start(); err == nil {
+		jobs = append(jobs, &cronJob{JobID: job.GetJobID(), Pid: cmd.Process.Pid})
+		cmd.Process.Release()
+	}
+
+	return err
 }
