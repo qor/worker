@@ -104,14 +104,16 @@ func (cron *Cron) Add(job QorJobInterface) (err error) {
 		if scheduler, ok := job.GetArgument().(Scheduler); ok {
 			scheduleTime := scheduler.GetScheduleTime()
 			repeatTime := scheduler.GetRepeatTime()
-			if scheduleTime == nil && repeatTime != nil{
-				newTime := time.Now()
-				scheduleTime = &newTime
-			} else {
-				job.SetStatus(JobStatusRunning)
+
+			if  scheduleTime == nil && repeatTime == nil{
 				execCommand(job, binaryFile, jobs)
 				cron.Jobs = jobs
 				return
+			}
+
+			if scheduleTime == nil && repeatTime != nil{
+				newTime := time.Now()
+				scheduleTime = &newTime
 			}
 
 			job.SetStatus(JobStatusScheduled)
