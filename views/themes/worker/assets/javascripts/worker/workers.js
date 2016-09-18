@@ -194,6 +194,7 @@
     var $progressStatusStatus = $('.qor-worker--progress-status');
     var $progress = $(CLASS_WORKER_PROGRESS);
     var $selectTR = $(CLASS_TABLE).find(CLASS_SELECT);
+    var status = ['killed','exception','cancelled','scheduled'];
 
     if ($progress.size()) {
       var progressData = $progress.data();
@@ -203,7 +204,7 @@
       var orignialStatus = $selectTR.find('td[data-heading="' + progressData.statusName + '"]').find('.qor-table__content').html();
     }
 
-    if (!$progress.size() || !$progress.size() || progressData.status == 'killed') {
+    if (!$progress.size() || !$progress.size() || status.indexOf(progressData.status) != -1) {
       window.clearInterval(QorWorker.getWorkerProgressIntervId);
       return;
     }
@@ -228,15 +229,11 @@
       var contentData = $html.find(CLASS_WORKER_PROGRESS).data();
       var currentStatus = contentData.progress;
       var progressStatusStatus = contentData.status;
-
-
-
       $progressValue.html(currentStatus);
       $progressStatusStatus.html(progressStatusStatus);
 
       // set status progress
       document.querySelector('#qor-worker--progress').MaterialProgress.setProgress(currentStatus);
-
 
       // update process log
       var oldLog = $.trim($logContainer.html());
