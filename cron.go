@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 )
 
 type cronJob struct {
@@ -100,7 +101,7 @@ func (cron *Cron) Add(job QorJobInterface) (err error) {
 		}
 
 		if scheduler, ok := job.GetArgument().(Scheduler); ok && scheduler.GetScheduleTime() != nil {
-			scheduleTime := scheduler.GetScheduleTime()
+			scheduleTime := scheduler.GetScheduleTime().In(time.Local)
 			job.SetStatus(JobStatusScheduled)
 
 			currentPath, _ := os.Getwd()
