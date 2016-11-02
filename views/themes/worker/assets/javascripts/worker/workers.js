@@ -125,6 +125,7 @@
 
       $parentList.show().find('form').removeClass('hidden');
       this.formOpened = true;
+      $(".select2-container--default").css({width: '100%'});
     },
 
     destroy: function () {
