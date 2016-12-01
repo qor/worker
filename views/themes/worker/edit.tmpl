@@ -86,7 +86,7 @@
             </div>
 
             <div class="qor-workers-rerun{{if (eq $job.GetStatus "done")}} show{{else}} hidden{{end}}">
-              <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect" data-url="{{print (url_for $job .Resource) "/run"}}" data-confirm="{{t "qor_admin.form.are_you_sure"}}" data-method="POST">{{t "qor_worker.jobs.rerun_job" "Rerun Job"}}</button>
+              <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect" data-url="{{join_url (url_for $job .Resource) "/run"}}" data-confirm="{{t "qor_admin.form.are_you_sure"}}" data-method="POST">{{t "qor_worker.jobs.rerun_job" "Rerun Job"}}</button>
             </div>
           </div>
         </div>
