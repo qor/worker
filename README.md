@@ -3,6 +3,7 @@
 Worker runs a single Job in the background, it can do so immediately or at a scheduled time.
 
 Once registered with QOR Admin, Worker will provide a `Workers` section in the navigation tree, containing pages for listing and managing the following aspects of Workers:
+
 	- All Jobs.
 	- Running: Jobs that are currently running.
 	- Scheduled: Jobs which have been scheduled to run at a time in the future.
