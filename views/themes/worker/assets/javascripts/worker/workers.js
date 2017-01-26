@@ -67,7 +67,7 @@
       e.preventDefault();
 
       var $workerErrorModal = $(QorWorker.POPOVERTEMPLATE).appendTo('body');
-      var url = $('tr.is-selected .qor-button--edit').attr('href');
+      var url = $('tr.is-selected').data('url');
       $workerErrorModal.qorModal('show');
 
       $.ajax({
