@@ -38,33 +38,7 @@
             </p>
 
             <div id="qor-worker--progress" class="mdl-progress mdl-js-progress{{if $job.GetResultsTable.TableCells}} has-errors-texts{{end}}"></div>
-
-            {{if $job.GetResultsTable.TableCells}}
-              <a href="#" class="qor-worker--show-errors">{{t "worker.show_full_report" "Show Full Report"}}</a>
-            {{end}}
           </div>
-
-          {{if $job.GetResultsTable.TableCells}}
-            <div class="hidden">
-              <p class="workers-label-title">{{t "qor_worker.jobs.job_reports" "Job Reports"}}</p>
-              <div class="qor-table-container workers-error-output">
-                <table class="mdl-data-table mdl-js-data-table qor-table is-sortable is-upgraded">
-                  {{range $cells := $job.GetResultsTable.TableCells}}
-                    <tr>
-                      {{range $cell := $cells}}
-                        <td class="mdl-data-table__cell--non-numeric{{if $cell.Error}} worker-process-error{{end}}">
-                          {{$cell.Value}}
-                          {{if $cell.Error}}
-                            <p>{{$cell.Error}}</p>
-                          {{end}}
-                        </td>
-                      {{end}}
-                    </tr>
-                  {{end}}
-                </table>
-              </div>
-            </div>
-          {{end}}
 
           {{if gt (len $job.GetLogs) 1}}
           <div>
@@ -77,6 +51,28 @@
             <div>
               <p class="workers-label-content">{{raw $job.GetProgressText}}</p>
             </div>
+          {{end}}
+
+          {{if $job.GetResultsTable.TableCells}}
+          <div>
+            <p class="workers-label-title">{{t "qor_worker.jobs.job_reports" "Job Reports"}}</p>
+            <div class="qor-table-container workers-error-output">
+              <table class="mdl-data-table mdl-js-data-table qor-table is-sortable is-upgraded">
+                {{range $cells := $job.GetResultsTable.TableCells}}
+                  <tr>
+                    {{range $cell := $cells}}
+                      <td class="mdl-data-table__cell--non-numeric{{if $cell.Error}} worker-process-error{{end}}">
+                        {{$cell.Value}}
+                        {{if $cell.Error}}
+                          <p>{{$cell.Error}}</p>
+                        {{end}}
+                      </td>
+                    {{end}}
+                  </tr>
+                {{end}}
+              </table>
+            </div>
+          </div>
           {{end}}
 
 
