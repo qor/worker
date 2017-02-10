@@ -32,10 +32,14 @@ const (
 )
 
 // New create Worker with Config
-func New(config ...Config) *Worker {
-	var cfg Config
+func New(config ...*Config) *Worker {
+	var cfg *Config
 	if len(config) > 0 {
 		cfg = config[0]
+	}
+
+	if cfg == nil {
+		cfg = &Config{}
 	}
 
 	if cfg.Job == nil {
@@ -46,7 +50,7 @@ func New(config ...Config) *Worker {
 		cfg.Queue = NewCronQueue()
 	}
 
-	return &Worker{Config: &cfg}
+	return &Worker{Config: cfg}
 }
 
 // Config worker config
