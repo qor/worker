@@ -49,11 +49,13 @@
           </div>
           
 
-          {{if $job.GetProgressText}}
-            <div>
+          
+          <div class="qor-worker--progress-result">
+            {{if $job.GetProgressText}}
               <p class="workers-label-content">{{raw $job.GetProgressText}}</p>
-            </div>
-          {{end}}
+            {{end}}
+          </div>
+          
 
           {{if $job.GetResultsTable.TableCells}}
           <div>

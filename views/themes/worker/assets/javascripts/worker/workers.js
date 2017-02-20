@@ -241,6 +241,7 @@
                 window.clearInterval(QorWorker.getWorkerProgressIntervId);
                 $('.qor-workers-abort').addClass('hidden');
                 $('.qor-workers-rerun').removeClass('hidden');
+                $('.qor-worker--progress-result').html($html.find('.qor-worker--progress-result').html());
             }
 
         });
