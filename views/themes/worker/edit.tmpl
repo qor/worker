@@ -39,13 +39,15 @@
 
             <div id="qor-worker--progress" class="mdl-progress mdl-js-progress{{if $job.GetResultsTable.TableCells}} has-errors-texts{{end}}"></div>
           </div>
-
-          {{if gt (len $job.GetLogs) 1}}
+          
           <div>
             <p class="workers-label-title">{{t "qor_worker.jobs.job_log" "Job Log"}}</p>
-            <div class="workers-log-output">{{range $log := $job.GetLogs}}<p>{{$log}}</p>{{end}}</div>
+            <div class="workers-log-output">
+              {{if gt (len $job.GetLogs) 1}}
+                {{range $log := $job.GetLogs}}<p>{{$log}}</p>{{end}}</div>
+              {{end}}
           </div>
-          {{end}}
+          
 
           {{if $job.GetProgressText}}
             <div>

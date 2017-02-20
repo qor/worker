@@ -101,7 +101,6 @@
         destroy: function () {
             this.unbind();
             QorWorker.getWorkerProgressIntervId && window.clearInterval(QorWorker.getWorkerProgressIntervId);
-            $.fn.qorSliderAfterShow.updateWorkerProgress = null;
         }
 
     };
@@ -143,7 +142,10 @@
     };
 
     $.fn.qorSliderAfterShow.updateWorkerProgress = function (url) {
-        QorWorker.getWorkerProgressIntervId = window.setInterval(QorWorker.updateWorkerProgress, 1000, url);
+        if (!$('.workers-log-output').length) {
+            return;
+        }
+        QorWorker.getWorkerProgressIntervId = window.setInterval(QorWorker.updateWorkerProgress, 2000, url);
     };
 
     QorWorker.updateTableStatus = function (status) {
@@ -167,6 +169,9 @@
         var $selectTR = $(CLASS_TABLE).find(CLASS_SELECT);
         var status = ['killed', 'exception', 'cancelled', 'scheduled'];
 
+        if (!$logContainer.length) {
+            return;
+        }
         if ($progress.size()) {
             var progressData = $progress.data();
         }
