@@ -171,14 +171,16 @@ func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 		router := worker.Admin.GetRouter()
 		controller := workerController{Worker: worker}
 		jobParamIDName := worker.JobResource.ParamIDName()
-		router.Get(res.ToParam(), controller.Index)
-		router.Get(res.ToParam()+"/new", controller.New)
-		router.Get(fmt.Sprintf("%v/%v", res.ToParam(), jobParamIDName), controller.Show)
-		router.Get(fmt.Sprintf("%v/%v/edit", res.ToParam(), jobParamIDName), controller.Show)
-		router.Post(fmt.Sprintf("%v/%v/run", res.ToParam(), jobParamIDName), controller.RunJob)
-		router.Post(res.ToParam(), controller.AddJob)
-		router.Put(fmt.Sprintf("%v/%v", res.ToParam(), jobParamIDName), controller.Update)
-		router.Delete(fmt.Sprintf("%v/%v", res.ToParam(), jobParamIDName), controller.KillJob)
+		routeConfig := admin.RouteConfig{Resource: worker.JobResource}
+
+		router.Get(res.ToParam(), controller.Index, routeConfig)
+		router.Get(res.ToParam()+"/new", controller.New, routeConfig)
+		router.Get(fmt.Sprintf("%v/%v", res.ToParam(), jobParamIDName), controller.Show, routeConfig)
+		router.Get(fmt.Sprintf("%v/%v/edit", res.ToParam(), jobParamIDName), controller.Show, routeConfig)
+		router.Post(fmt.Sprintf("%v/%v/run", res.ToParam(), jobParamIDName), controller.RunJob, routeConfig)
+		router.Post(res.ToParam(), controller.AddJob, routeConfig)
+		router.Put(fmt.Sprintf("%v/%v", res.ToParam(), jobParamIDName), controller.Update, routeConfig)
+		router.Delete(fmt.Sprintf("%v/%v", res.ToParam(), jobParamIDName), controller.KillJob, routeConfig)
 	}
 }
 
