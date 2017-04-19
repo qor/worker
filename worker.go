@@ -61,6 +61,7 @@ type Worker struct {
 	*Config
 	JobResource *admin.Resource
 	Jobs        []*Job
+	mounted     bool
 }
 
 // ConfigureQorResourceBeforeInitialize a method used to config Worker for qor admin
@@ -130,6 +131,7 @@ func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 		qorJobID := cmdLine.String("qor-job", "", "Qor Job ID")
 		runAnother := cmdLine.Bool("run-another", false, "Run another qor job")
 		cmdLine.Parse(os.Args[1:])
+		worker.mounted = true
 
 		if *qorJobID != "" {
 			if *runAnother == true {
@@ -190,6 +192,11 @@ func (worker *Worker) SetQueue(queue Queue) {
 
 // RegisterJob register a job into Worker
 func (worker *Worker) RegisterJob(job *Job) error {
+	if worker.mounted {
+		debug.PrintStack()
+		fmt.Printf("Job should be registered before Worker mounted into admin, but %v is registered after that", job.Name)
+	}
+
 	job.Worker = worker
 	worker.Jobs = append(worker.Jobs, job)
 	return nil
