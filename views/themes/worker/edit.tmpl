@@ -22,7 +22,7 @@
             {{render_form $job (new_sections $job.GetJob.Worker.JobResource)}}
             <div class="qor-form__actions">
               <button type="submit" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect">{{t "qor_worker.jobs.update_scheduled_job" "Update Scheduled Job"}}</button>
-              <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent" data-url="{{url_for $job .Resource}}" data-confirm="{{t "qor_worker.confirm.are_you_sure" "Are You Sure?"}}" data-confirm-ok="{{t "qor_worker.jobs.cancel_scheduled_job" "Cancel Scheduled Job"}}" data-confirm-cancel="{{t "qor_admin.form.confirm.button.cancel" "cancel"}}" data-method="DELETE">{{t "qor_worker.jobs.cancel_scheduled_job" "Cancel Scheduled Job"}}</button>
+              <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect qor-button--accent" data-url="{{url_for $job .Resource}}" data-confirm="{{t "qor_worker.confirm.are_you_sure" "Are You Sure?"}}" data-confirm-ok="{{t "qor_worker.jobs.cancel_scheduled_job" "Cancel Scheduled Job"}}" data-confirm-cancel="{{t "qor_worker.confirm.cancel" "cancel"}}" data-method="DELETE">{{t "qor_worker.jobs.cancel_scheduled_job" "Cancel Scheduled Job"}}</button>
             </div>
           </form>
         </div>
