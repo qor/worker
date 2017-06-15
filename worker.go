@@ -148,7 +148,7 @@ func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 				os.Exit(0)
 			} else {
 				fmt.Println(err)
-				os.Exit(1)
+				// os.Exit(1)
 			}
 		}
 
