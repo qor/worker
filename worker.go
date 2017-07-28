@@ -81,14 +81,14 @@ func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resource
 
 		for _, status := range []string{JobStatusScheduled, JobStatusNew, JobStatusRunning, JobStatusDone, JobStatusException} {
 			var status = status
-			worker.JobResource.Scope(&admin.Scope{Name: status, Handle: func(db *gorm.DB, ctx *qor.Context) *gorm.DB {
+			worker.JobResource.Scope(&admin.Scope{Name: status, Handler: func(db *gorm.DB, ctx *qor.Context) *gorm.DB {
 				return db.Where("status = ?", status)
 			}})
 		}
 
 		// default scope
 		worker.JobResource.Scope(&admin.Scope{
-			Handle: func(db *gorm.DB, ctx *qor.Context) *gorm.DB {
+			Handler: func(db *gorm.DB, ctx *qor.Context) *gorm.DB {
 				if jobName := ctx.Request.URL.Query().Get("job"); jobName != "" {
 					return db.Where("kind = ?", jobName)
 				}
