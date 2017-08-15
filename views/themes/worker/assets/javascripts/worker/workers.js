@@ -1,4 +1,4 @@
-(function (factory) {
+(function(factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as anonymous module.
         define(['jquery'], factory);
@@ -9,8 +9,7 @@
         // Browser globals.
         factory(jQuery);
     }
-})(function ($) {
-
+})(function($) {
     'use strict';
 
     let NAMESPACE = 'qor.worker',
@@ -35,30 +34,27 @@
     QorWorker.prototype = {
         constructor: QorWorker,
 
-        init: function () {
+        init: function() {
             this.bind();
             this.formOpened = false;
-
             if ($(CLASS_WORKER_SHOW).length) {
                 this.formOpened = true;
             }
 
+            if (!$('.qor-slideout').is(':visible')) {
+                $.fn.qorSliderAfterShow.updateWorkerProgress();
+            }
         },
 
-        bind: function () {
-            this.$element
-                .on(EVENT_CLICK, CLASS_NEW_WORKER, $.proxy(this.showForm, this))
-                .on(EVENT_CLICK, CLASS_BUTTON_BACK, $.proxy(this.hideForm, this));
+        bind: function() {
+            this.$element.on(EVENT_CLICK, CLASS_NEW_WORKER, $.proxy(this.showForm, this)).on(EVENT_CLICK, CLASS_BUTTON_BACK, $.proxy(this.hideForm, this));
         },
 
-        unbind: function () {
-            this.$element
-                .off(EVENT_CLICK, CLASS_NEW_WORKER, this.showForm, this)
-                .off(EVENT_CLICK, CLASS_BUTTON_BACK, this.hideForm, this);
+        unbind: function() {
+            this.$element.off(EVENT_CLICK, CLASS_NEW_WORKER, this.showForm, this).off(EVENT_CLICK, CLASS_BUTTON_BACK, this.hideForm, this);
         },
 
-        hideForm: function (e) {
-
+        hideForm: function(e) {
             e.preventDefault();
 
             var $parent = this.$element;
@@ -72,10 +68,9 @@
 
             window.onbeforeunload = null;
             $.fn.qorSlideoutBeforeHide = null;
-
         },
 
-        showForm: function (e) {
+        showForm: function(e) {
             var $target = $(e.target);
             e.preventDefault();
 
@@ -98,16 +93,14 @@
             this.formOpened = true;
         },
 
-        destroy: function () {
+        destroy: function() {
             this.unbind();
             QorWorker.getWorkerProgressIntervId && window.clearInterval(QorWorker.getWorkerProgressIntervId);
         }
-
     };
 
     QorWorker.DEFAULTS = {};
-    QorWorker.POPOVERTEMPLATE = (
-        `<div class="qor-modal fade qor-modal--worker-errors" tabindex="-1" role="dialog" aria-hidden="true">
+    QorWorker.POPOVERTEMPLATE = `<div class="qor-modal fade qor-modal--worker-errors" tabindex="-1" role="dialog" aria-hidden="true">
           <div class="mdl-card mdl-shadow--2dp" role="document">
             <div class="mdl-card__title">
               <h2 class="mdl-card__title-text">Process Errors</h2>
@@ -117,17 +110,15 @@
               <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">close</a>
             </div>
           </div>
-        </div>`
-    );
+        </div>`;
 
-    QorWorker.plugin = function (options) {
-        return this.each(function () {
+    QorWorker.plugin = function(options) {
+        return this.each(function() {
             var $this = $(this);
             var data = $this.data(NAMESPACE);
             var fn;
 
             if (!data) {
-
                 if (/destroy/.test(options)) {
                     return;
                 }
@@ -135,32 +126,31 @@
                 $this.data(NAMESPACE, (data = new QorWorker(this, options)));
             }
 
-            if (typeof options === 'string' && $.isFunction(fn = data[options])) {
+            if (typeof options === 'string' && $.isFunction((fn = data[options]))) {
                 fn.apply(data);
             }
         });
     };
 
-    $.fn.qorSliderAfterShow.updateWorkerProgress = function (url) {
+    $.fn.qorSliderAfterShow.updateWorkerProgress = function(url) {
         if (!$('.workers-log-output').length) {
             return;
         }
         QorWorker.getWorkerProgressIntervId = window.setInterval(QorWorker.updateWorkerProgress, 2000, url);
     };
 
-    QorWorker.updateTableStatus = function (status) {
+    QorWorker.updateTableStatus = function(status) {
         var $selectedItem = $(CLASS_TABLE).find(CLASS_SELECT);
         var statusName = $(CLASS_WORKER_PROGRESS).data().statusName;
 
         $selectedItem.find('td[data-heading="' + statusName + '"]').find('.qor-table__content').html(status);
-
     };
 
-    QorWorker.isScrollToBottom = function (element) {
-        return element.clientHeight + element.scrollTop === element.scrollHeight;
+    QorWorker.isScrollToBottom = function(element) {
+        return element.clientHeight + element.scrollTop <= element.scrollHeight;
     };
 
-    QorWorker.updateWorkerProgress = function (url) {
+    QorWorker.updateWorkerProgress = function(url) {
         var progressURL = url;
         var $logContainer = $('.workers-log-output');
         var $progressValue = $('.qor-worker--progress-value');
@@ -200,7 +190,7 @@
             dataType: 'html',
             processData: false,
             contentType: false
-        }).done(function (html) {
+        }).done(function(html) {
             let $html = $(html),
                 contentData = $html.find(CLASS_WORKER_PROGRESS).data(),
                 currentStatus = contentData.progress,
@@ -226,7 +216,6 @@
                 } else {
                     $logContainer.append(newLogHtml);
                 }
-
             }
 
             if ($errorTable.length) {
@@ -243,24 +232,21 @@
                 $('.qor-workers-rerun').removeClass('hidden');
                 $('.qor-worker--progress-result').html($html.find('.qor-worker--progress-result').html());
             }
-
         });
     };
 
-
-    $(function () {
+    $(function() {
         var selector = '[data-toggle="qor.workers"]';
 
-        $(document).
-        on(EVENT_DISABLE, function (e) {
-            QorWorker.plugin.call($(selector, e.target), 'destroy');
-        }).
-        on(EVENT_ENABLE, function (e) {
-            QorWorker.plugin.call($(selector, e.target));
-        }).
-        triggerHandler(EVENT_ENABLE);
+        $(document)
+            .on(EVENT_DISABLE, function(e) {
+                QorWorker.plugin.call($(selector, e.target), 'destroy');
+            })
+            .on(EVENT_ENABLE, function(e) {
+                QorWorker.plugin.call($(selector, e.target));
+            })
+            .triggerHandler(EVENT_ENABLE);
     });
 
     return QorWorker;
-
 });
