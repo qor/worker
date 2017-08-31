@@ -36,5 +36,9 @@ func (job Job) HasPermission(mode roles.PermissionMode, context *qor.Context) bo
 	if job.Permission == nil {
 		return true
 	}
-	return job.Permission.HasPermission(mode, context.Roles...)
+	var roles = []interface{}{}
+	for _, role := range context.Roles {
+		roles = append(roles, role)
+	}
+	return job.Permission.HasPermission(mode, roles...)
 }
