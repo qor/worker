@@ -47,7 +47,9 @@
         },
 
         bind: function() {
-            this.$element.on(EVENT_CLICK, CLASS_NEW_WORKER, $.proxy(this.showForm, this)).on(EVENT_CLICK, CLASS_BUTTON_BACK, $.proxy(this.hideForm, this));
+            this.$element
+                .on(EVENT_CLICK, CLASS_NEW_WORKER, $.proxy(this.showForm, this))
+                .on(EVENT_CLICK, CLASS_BUTTON_BACK, $.proxy(this.hideForm, this));
         },
 
         unbind: function() {
@@ -162,15 +164,15 @@
         if (!$logContainer.length) {
             return;
         }
-        if ($progress.size()) {
+        if ($progress.length) {
             var progressData = $progress.data();
         }
 
-        if ($selectTR.size() && progressData && progressData.statusName) {
+        if ($selectTR.length && progressData && progressData.statusName) {
             var orignialStatus = $selectTR.find('td[data-heading="' + progressData.statusName + '"]').find('.qor-table__content').html();
         }
 
-        if (!$progress.size() || !$progress.size() || status.indexOf(progressData.status) != -1) {
+        if (!$progress.length || !$progress.length || status.indexOf(progressData.status) != -1) {
             window.clearInterval(QorWorker.getWorkerProgressIntervId);
             return;
         }
