@@ -47,9 +47,7 @@
         },
 
         bind: function() {
-            this.$element
-                .on(EVENT_CLICK, CLASS_NEW_WORKER, $.proxy(this.showForm, this))
-                .on(EVENT_CLICK, CLASS_BUTTON_BACK, $.proxy(this.hideForm, this));
+            this.$element.on(EVENT_CLICK, CLASS_NEW_WORKER, $.proxy(this.showForm, this)).on(EVENT_CLICK, CLASS_BUTTON_BACK, $.proxy(this.hideForm, this));
         },
 
         unbind: function() {
@@ -62,7 +60,11 @@
             var $parent = this.$element;
             var $lists = $parent.find(CLASS_WORKER_CONTAINER).find('>li');
 
-            $lists.show().removeClass('current').find('form').addClass('hidden');
+            $lists
+                .show()
+                .removeClass('current')
+                .find('form')
+                .addClass('hidden');
             $(CLASS_BUTTON_BACK).addClass('hidden');
             $(CLASS_WORKER_LIST).show();
 
@@ -91,7 +93,10 @@
             $(CLASS_BUTTON_BACK).removeClass('hidden');
             $targetList.find(CLASS_WORKER_LIST).hide();
 
-            $parentList.show().find('form').removeClass('hidden');
+            $parentList
+                .show()
+                .find('form')
+                .removeClass('hidden');
             this.formOpened = true;
         },
 
@@ -145,7 +150,10 @@
         var $selectedItem = $(CLASS_TABLE).find(CLASS_SELECT);
         var statusName = $(CLASS_WORKER_PROGRESS).data().statusName;
 
-        $selectedItem.find('td[data-heading="' + statusName + '"]').find('.qor-table__content').html(status);
+        $selectedItem
+            .find('td[data-heading="' + statusName + '"]')
+            .find('.qor-table__content')
+            .html(status);
     };
 
     QorWorker.isScrollToBottom = function(element) {
@@ -153,13 +161,13 @@
     };
 
     QorWorker.updateWorkerProgress = function(url) {
-        var progressURL = url;
-        var $logContainer = $('.workers-log-output');
-        var $progressValue = $('.qor-worker--progress-value');
-        var $progressStatusStatus = $('.qor-worker--progress-status');
-        var $progress = $(CLASS_WORKER_PROGRESS);
-        var $selectTR = $(CLASS_TABLE).find(CLASS_SELECT);
-        var status = ['killed', 'exception', 'cancelled', 'scheduled'];
+        let progressURL = url,
+            $logContainer = $('.workers-log-output'),
+            $progressValue = $('.qor-worker--progress-value'),
+            $progressStatusStatus = $('.qor-worker--progress-status'),
+            $progress = $(CLASS_WORKER_PROGRESS),
+            $selectTR = $(CLASS_TABLE).find(CLASS_SELECT),
+            status = ['killed', 'exception', 'cancelled', 'scheduled'];
 
         if (!$logContainer.length) {
             return;
@@ -169,7 +177,10 @@
         }
 
         if ($selectTR.length && progressData && progressData.statusName) {
-            var orignialStatus = $selectTR.find('td[data-heading="' + progressData.statusName + '"]').find('.qor-table__content').html();
+            var orignialStatus = $selectTR
+                .find('td[data-heading="' + progressData.statusName + '"]')
+                .find('.qor-table__content')
+                .html();
         }
 
         if (!$progress.length || !$progress.length || status.indexOf(progressData.status) != -1) {
@@ -205,19 +216,13 @@
             document.querySelector('#qor-worker--progress').MaterialProgress.setProgress(currentStatus);
 
             // update process log
-            let oldLog = $.trim($logContainer.html()),
-                newLog = $.trim($html.find('.workers-log-output').html()),
-                newLogHtml,
+            let log = $.trim($html.find('.workers-log-output').html()),
                 $errorTable = $html.find('.workers-error-output');
 
-            if (newLog != oldLog) {
-                newLogHtml = newLog.replace(oldLog, '');
-
-                if (QorWorker.isScrollToBottom($logContainer[0])) {
-                    $logContainer.append(newLogHtml).scrollTop($logContainer[0].scrollHeight);
-                } else {
-                    $logContainer.append(newLogHtml);
-                }
+            if (QorWorker.isScrollToBottom($logContainer[0])) {
+                $logContainer.html(log).scrollTop($logContainer[0].scrollHeight);
+            } else {
+                $logContainer.html(log);
             }
 
             if ($errorTable.length) {
