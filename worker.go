@@ -112,7 +112,7 @@ func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resource
 		})
 
 		// Auto Migration
-		worker.Admin.Config.DB.AutoMigrate(worker.Config.Job)
+		worker.Admin.DB.AutoMigrate(worker.Config.Job)
 
 		// Configure jobs
 		for _, job := range worker.Jobs {
