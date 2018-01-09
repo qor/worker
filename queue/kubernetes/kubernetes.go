@@ -1,13 +1,14 @@
 package kubernetes
 
 import (
+	"github.com/qor/worker"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
 // Kubernetes implemented a worker Queue based on kubernetes jobs
 type Kubernetes struct {
-	Clientset *Clientset
+	Clientset *kubernetes.Clientset
 	Config    *Config
 }
 
@@ -38,4 +39,24 @@ func New(config *Config) (*Kubernetes, error) {
 	}
 
 	return &Kubernetes{Clientset: clientset, Config: config}, nil
+}
+
+// Add a job to k8s queue
+func (k8s *Kubernetes) Add(worker.QorJobInterface) error {
+	return nil
+}
+
+// Run a job from k8s queue
+func (k8s *Kubernetes) Run(worker.QorJobInterface) error {
+	return nil
+}
+
+// Kill a job from k8s queue
+func (k8s *Kubernetes) Kill(worker.QorJobInterface) error {
+	return nil
+}
+
+// Remove a job from k8s queue
+func (k8s *Kubernetes) Remove(worker.QorJobInterface) error {
+	return nil
 }
