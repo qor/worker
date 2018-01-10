@@ -1,6 +1,8 @@
 package kubernetes
 
 import (
+	"errors"
+
 	"github.com/qor/worker"
 	"k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -8,6 +10,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
+
+var _ worker.Queue = &Kubernetes{}
 
 // Kubernetes implemented a worker Queue based on kubernetes jobs
 type Kubernetes struct {
@@ -46,7 +50,8 @@ func New(config *Config) (*Kubernetes, error) {
 }
 
 // Add a job to k8s queue
-func (k8s *Kubernetes) Add(job worker.QorJobInterface) error {
+func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
+	// TODO CronJob
 	k8sJob := &v1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
@@ -76,16 +81,23 @@ func (k8s *Kubernetes) Add(job worker.QorJobInterface) error {
 }
 
 // Run a job from k8s queue
-func (k8s *Kubernetes) Run(job worker.QorJobInterface) error {
-	return nil
+func (k8s *Kubernetes) Run(qorJob worker.QorJobInterface) error {
+	job := qorJob.GetJob()
+
+	if job.Handler != nil {
+		return job.Handler(qorJob.GetSerializableArgument(qorJob), qorJob)
+	}
+
+	return errors.New("no handler found for job " + job.Name)
 }
 
 // Kill a job from k8s queue
 func (k8s *Kubernetes) Kill(job worker.QorJobInterface) error {
-	return nil
+	return k8s.Clientset.Core().Pods(k8s.Config.Namespace).Delete("job name", &metav1.DeleteOptions{})
 }
 
 // Remove a job from k8s queue
 func (k8s *Kubernetes) Remove(job worker.QorJobInterface) error {
-	return nil
+	// Don't remove if it is already running
+	return k8s.Clientset.Core().Pods(k8s.Config.Namespace).Delete("job name", &metav1.DeleteOptions{})
 }
