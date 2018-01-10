@@ -2,6 +2,9 @@ package kubernetes
 
 import (
 	"github.com/qor/worker"
+	"k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -14,6 +17,7 @@ type Kubernetes struct {
 
 // Config kubernetes config
 type Config struct {
+	Namespace     string
 	ClusterConfig *rest.Config
 }
 
@@ -42,21 +46,46 @@ func New(config *Config) (*Kubernetes, error) {
 }
 
 // Add a job to k8s queue
-func (k8s *Kubernetes) Add(worker.QorJobInterface) error {
-	return nil
+func (k8s *Kubernetes) Add(job worker.QorJobInterface) error {
+	k8sJob := &v1.Job{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Job",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   "job id",
+			Labels: map[string]string{},
+		},
+		Spec: v1.JobSpec{
+			Selector: &metav1.LabelSelector{
+			// from config?
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:   "job id",
+					Labels: map[string]string{},
+				},
+				Spec: corev1.PodSpec{
+				// TODO
+				},
+			},
+		},
+	}
+	_, err := k8s.Clientset.Batch().Jobs(k8s.Config.Namespace).Create(k8sJob)
+	return err
 }
 
 // Run a job from k8s queue
-func (k8s *Kubernetes) Run(worker.QorJobInterface) error {
+func (k8s *Kubernetes) Run(job worker.QorJobInterface) error {
 	return nil
 }
 
 // Kill a job from k8s queue
-func (k8s *Kubernetes) Kill(worker.QorJobInterface) error {
+func (k8s *Kubernetes) Kill(job worker.QorJobInterface) error {
 	return nil
 }
 
 // Remove a job from k8s queue
-func (k8s *Kubernetes) Remove(worker.QorJobInterface) error {
+func (k8s *Kubernetes) Remove(job worker.QorJobInterface) error {
 	return nil
 }
