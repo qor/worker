@@ -2,6 +2,9 @@ package kubernetes
 
 import (
 	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/qor/worker"
 	"k8s.io/api/batch/v1"
@@ -22,6 +25,7 @@ type Kubernetes struct {
 // Config kubernetes config
 type Config struct {
 	Namespace     string
+	Image         string
 	ClusterConfig *rest.Config
 }
 
@@ -51,14 +55,19 @@ func New(config *Config) (*Kubernetes, error) {
 
 // Add a job to k8s queue
 func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
-	// TODO CronJob
+	jobName := fmt.Sprintf("qor_job_%v", qorJob.GetJobID())
+
+	currentPath, _ := os.Getwd()
+	binaryFile, err := filepath.Abs(os.Args[0])
+
+	// TODO K8s CronJob
 	k8sJob := &v1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
-			APIVersion: "v1",
+			APIVersion: "batch/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   "job id",
+			Name:   jobName,
 			Labels: map[string]string{},
 		},
 		Spec: v1.JobSpec{
@@ -67,16 +76,21 @@ func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:   "job id",
+					Name:   jobName,
 					Labels: map[string]string{},
 				},
 				Spec: corev1.PodSpec{
-				// TODO
+					Containers: []corev1.Container{{
+						Name:       jobName,
+						Image:      k8s.Config.Image,
+						Command:    []string{binaryFile, "--qor-job", qorJob.GetJobID()},
+						WorkingDir: currentPath,
+					}},
 				},
 			},
 		},
 	}
-	_, err := k8s.Clientset.Batch().Jobs(k8s.Config.Namespace).Create(k8sJob)
+	_, err = k8s.Clientset.Batch().Jobs(k8s.Config.Namespace).Create(k8sJob)
 	return err
 }
 
