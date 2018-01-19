@@ -55,7 +55,7 @@ func New(config *Config) (*Kubernetes, error) {
 
 // Add a job to k8s queue
 func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
-	jobName := fmt.Sprintf("qor_job_%v", qorJob.GetJobID())
+	jobName := fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
 
 	currentPath, _ := os.Getwd()
 	binaryFile, err := filepath.Abs(os.Args[0])
@@ -86,6 +86,7 @@ func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
 						Command:    []string{binaryFile, "--qor-job", qorJob.GetJobID()},
 						WorkingDir: currentPath,
 					}},
+					RestartPolicy: "Never",
 				},
 			},
 		},
