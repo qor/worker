@@ -116,13 +116,15 @@ func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
 		k8sJob.Spec.Template.Spec.RestartPolicy = "Never"
 	}
 
-	for _, container := range k8sJob.Spec.Template.Spec.Containers {
+	for idx, container := range k8sJob.Spec.Template.Spec.Containers {
 		if len(container.Command) == 0 || k8s.Config.JobTemplate == "" {
 			container.Command = []string{binaryFile, "--qor-job", qorJob.GetJobID()}
 		}
 		if container.WorkingDir == "" || k8s.Config.JobTemplate == "" {
 			container.WorkingDir = currentPath
 		}
+
+		k8sJob.Spec.Template.Spec.Containers[idx] = container
 	}
 
 	_, err = k8s.Clientset.Batch().Jobs(k8s.Config.Namespace).Create(k8sJob)
