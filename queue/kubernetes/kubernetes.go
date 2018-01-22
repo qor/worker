@@ -1,11 +1,14 @@
 package kubernetes
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
 	"os"
 	"path/filepath"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/qor/worker"
 	"k8s.io/api/batch/v1"
@@ -28,6 +31,7 @@ type Kubernetes struct {
 type Config struct {
 	Namespace     string
 	Image         string
+	JobTemplate   string
 	ClusterConfig *rest.Config
 }
 
@@ -62,9 +66,11 @@ func (k8s *Kubernetes) GetCurrentPod() *corev1.Pod {
 		localeIP     = GetLocalIP()
 	)
 
-	for _, item := range podlist.Items {
-		if item.Status.PodIP == localeIP {
-			return &item
+	if err == nil {
+		for _, item := range podlist.Items {
+			if item.Status.PodIP == localeIP {
+				return &item
+			}
 		}
 	}
 	return nil
@@ -72,42 +78,53 @@ func (k8s *Kubernetes) GetCurrentPod() *corev1.Pod {
 
 // Add a job to k8s queue
 func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
-	jobName := fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
+	var (
+		jobName    = fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
+		currentPod = k8s.GetCurrentPod()
+	)
 
 	currentPath, _ := os.Getwd()
 	binaryFile, err := filepath.Abs(os.Args[0])
+	k8sJob := &v1.Job{}
 
-	// TODO K8s CronJob
-	k8sJob := &v1.Job{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Job",
-			APIVersion: "batch/v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   jobName,
-			Labels: map[string]string{},
-		},
-		Spec: v1.JobSpec{
-			Selector: &metav1.LabelSelector{
-			// from config?
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:   jobName,
-					Labels: map[string]string{},
-				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{{
-						Name:       jobName,
-						Image:      k8s.Config.Image,
-						Command:    []string{binaryFile, "--qor-job", qorJob.GetJobID()},
-						WorkingDir: currentPath,
-					}},
-					RestartPolicy: "Never",
-				},
-			},
-		},
+	if k8s.Config.JobTemplate != "" {
+		if err = yaml.Unmarshal([]byte(k8s.Config.JobTemplate), &k8sJob); err != nil {
+			return err
+		}
+	} else {
+		if marshaledContainers, err := json.Marshal(currentPod.Spec.Containers); err == nil {
+			json.Unmarshal(marshaledContainers, &k8sJob.Spec.Template.Spec.Containers)
+		}
+
+		if marshaledVolumes, err := json.Marshal(currentPod.Spec.Volumes); err == nil {
+			json.Unmarshal(marshaledVolumes, &k8sJob.Spec.Template.Spec.Volumes)
+		}
 	}
+
+	k8sJob.ObjectMeta.Name = jobName
+	k8sJob.Spec.Template.ObjectMeta.Name = jobName
+
+	if k8sJob.TypeMeta.Kind == "" {
+		k8sJob.TypeMeta.Kind = "Job"
+	}
+
+	if k8sJob.TypeMeta.APIVersion == "" {
+		k8sJob.TypeMeta.APIVersion = "batch/v1"
+	}
+
+	if k8sJob.Spec.Template.Spec.RestartPolicy == "" {
+		k8sJob.Spec.Template.Spec.RestartPolicy = "Never"
+	}
+
+	for _, container := range k8sJob.Spec.Template.Spec.Containers {
+		if len(container.Command) == 0 || k8s.Config.JobTemplate == "" {
+			container.Command = []string{binaryFile, "--qor-job", qorJob.GetJobID()}
+		}
+		if container.WorkingDir == "" || k8s.Config.JobTemplate == "" {
+			container.WorkingDir = currentPath
+		}
+	}
+
 	_, err = k8s.Clientset.Batch().Jobs(k8s.Config.Namespace).Create(k8sJob)
 	return err
 }
