@@ -30,7 +30,6 @@ type Kubernetes struct {
 // Config kubernetes config
 type Config struct {
 	Namespace     string
-	Image         string
 	JobTemplate   string
 	ClusterConfig *rest.Config
 }
@@ -76,20 +75,24 @@ func (k8s *Kubernetes) GetCurrentPod() *corev1.Pod {
 	return nil
 }
 
-// Add a job to k8s queue
-func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
+// GetJobSpec get job spec
+func (k8s *Kubernetes) GetJobSpec() (*v1.Job, error) {
 	var (
-		jobName    = fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
+		k8sJob     = &v1.Job{}
 		currentPod = k8s.GetCurrentPod()
+		namespace  = currentPod.GetNamespace()
 	)
 
-	currentPath, _ := os.Getwd()
-	binaryFile, err := filepath.Abs(os.Args[0])
-	k8sJob := &v1.Job{}
+	if k8s.Config.Namespace == "" {
+		namespace = k8s.Config.Namespace
+	}
 
 	if k8s.Config.JobTemplate != "" {
 		if err = yaml.Unmarshal([]byte(k8s.Config.JobTemplate), &k8sJob); err != nil {
-			return err
+			return nil, err
+		}
+		if k8sJob.ObjectMeta.Namespace != "" {
+			namespace = k8sJob.ObjectMeta.Namespace
 		}
 	} else {
 		if marshaledContainers, err := json.Marshal(currentPod.Spec.Containers); err == nil {
@@ -101,9 +104,6 @@ func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
 		}
 	}
 
-	k8sJob.ObjectMeta.Name = jobName
-	k8sJob.Spec.Template.ObjectMeta.Name = jobName
-
 	if k8sJob.TypeMeta.Kind == "" {
 		k8sJob.TypeMeta.Kind = "Job"
 	}
@@ -112,22 +112,43 @@ func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
 		k8sJob.TypeMeta.APIVersion = "batch/v1"
 	}
 
-	if k8sJob.Spec.Template.Spec.RestartPolicy == "" {
-		k8sJob.Spec.Template.Spec.RestartPolicy = "Never"
+	if k8sJob.ObjectMeta.Namespace == "" {
+		k8sJob.ObjectMeta.Namespace = namespace
 	}
 
-	for idx, container := range k8sJob.Spec.Template.Spec.Containers {
-		if len(container.Command) == 0 || k8s.Config.JobTemplate == "" {
-			container.Command = []string{binaryFile, "--qor-job", qorJob.GetJobID()}
-		}
-		if container.WorkingDir == "" || k8s.Config.JobTemplate == "" {
-			container.WorkingDir = currentPath
+	return k8sJob, nil
+}
+
+// Add a job to k8s queue
+func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
+	var (
+		jobName         = fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
+		k8sJob, err     = k8s.GetJobSpec()
+		currentPath, _  = os.Getwd()
+		binaryFile, err = filepath.Abs(os.Args[0])
+	)
+
+	if err == nil {
+		k8sJob.ObjectMeta.Name = jobName
+		k8sJob.Spec.Template.ObjectMeta.Name = jobName
+
+		if k8sJob.Spec.Template.Spec.RestartPolicy == "" {
+			k8sJob.Spec.Template.Spec.RestartPolicy = "Never"
 		}
 
-		k8sJob.Spec.Template.Spec.Containers[idx] = container
+		for idx, container := range k8sJob.Spec.Template.Spec.Containers {
+			if len(container.Command) == 0 || k8s.Config.JobTemplate == "" {
+				container.Command = []string{binaryFile, "--qor-job", qorJob.GetJobID()}
+			}
+			if container.WorkingDir == "" || k8s.Config.JobTemplate == "" {
+				container.WorkingDir = currentPath
+			}
+
+			k8sJob.Spec.Template.Spec.Containers[idx] = container
+		}
+
+		_, err = k8s.Clientset.Batch().Jobs(k8sJob.ObjectMeta.GetNamespace()).Create(k8sJob)
 	}
-
-	_, err = k8s.Clientset.Batch().Jobs(k8s.Config.Namespace).Create(k8sJob)
 	return err
 }
 
@@ -143,14 +164,31 @@ func (k8s *Kubernetes) Run(qorJob worker.QorJobInterface) error {
 }
 
 // Kill a job from k8s queue
-func (k8s *Kubernetes) Kill(job worker.QorJobInterface) error {
-	return k8s.Clientset.Core().Pods(k8s.Config.Namespace).Delete("job name", &metav1.DeleteOptions{})
+func (k8s *Kubernetes) Kill(qorJob worker.QorJobInterface) error {
+	var (
+		k8sJob, err = k8s.GetJobSpec()
+		jobName     = fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
+	)
+
+	if err == nil {
+		return k8s.Clientset.Core().Pods(k8sJob.ObjectMeta.GetNamespace()).Delete(jobName, &metav1.DeleteOptions{})
+	}
+	return err
 }
 
 // Remove a job from k8s queue
 func (k8s *Kubernetes) Remove(job worker.QorJobInterface) error {
-	// Don't remove if it is already running
-	return k8s.Clientset.Core().Pods(k8s.Config.Namespace).Delete("job name", &metav1.DeleteOptions{})
+
+	var (
+		k8sJob, err = k8s.GetJobSpec()
+		jobName     = fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
+	)
+
+	if err == nil {
+		// TODO Don't remove if it is already running
+		return k8s.Clientset.Core().Pods(k8sJob.ObjectMeta.GetNamespace()).Delete(jobName, &metav1.DeleteOptions{})
+	}
+	return err
 }
 
 // GetLocalIP returns the non loopback local IP of the host
