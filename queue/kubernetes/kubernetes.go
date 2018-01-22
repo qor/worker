@@ -83,12 +83,12 @@ func (k8s *Kubernetes) GetJobSpec() (*v1.Job, error) {
 		namespace  = currentPod.GetNamespace()
 	)
 
-	if k8s.Config.Namespace == "" {
+	if k8s.Config.Namespace != "" {
 		namespace = k8s.Config.Namespace
 	}
 
 	if k8s.Config.JobTemplate != "" {
-		if err = yaml.Unmarshal([]byte(k8s.Config.JobTemplate), &k8sJob); err != nil {
+		if err := yaml.Unmarshal([]byte(k8s.Config.JobTemplate), &k8sJob); err != nil {
 			return nil, err
 		}
 		if k8sJob.ObjectMeta.Namespace != "" {
@@ -122,10 +122,10 @@ func (k8s *Kubernetes) GetJobSpec() (*v1.Job, error) {
 // Add a job to k8s queue
 func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
 	var (
-		jobName         = fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
-		k8sJob, err     = k8s.GetJobSpec()
-		currentPath, _  = os.Getwd()
-		binaryFile, err = filepath.Abs(os.Args[0])
+		jobName        = fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
+		k8sJob, err    = k8s.GetJobSpec()
+		currentPath, _ = os.Getwd()
+		binaryFile, _  = filepath.Abs(os.Args[0])
 	)
 
 	if err == nil {
@@ -177,8 +177,7 @@ func (k8s *Kubernetes) Kill(qorJob worker.QorJobInterface) error {
 }
 
 // Remove a job from k8s queue
-func (k8s *Kubernetes) Remove(job worker.QorJobInterface) error {
-
+func (k8s *Kubernetes) Remove(qorJob worker.QorJobInterface) error {
 	var (
 		k8sJob, err = k8s.GetJobSpec()
 		jobName     = fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
