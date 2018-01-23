@@ -86,7 +86,7 @@ func (k8s *Kubernetes) GetJobSpec() (*v1.Job, error) {
 	}
 
 	if k8s.Config.JobTemplate != "" {
-		if err := yaml.Unmarshal([]byte(k8s.Config.JobTemplate), &k8sJob); err != nil {
+		if err := yaml.Unmarshal([]byte(k8s.Config.JobTemplate), k8sJob); err != nil {
 			return nil, err
 		}
 		if k8sJob.ObjectMeta.Namespace != "" {
@@ -94,11 +94,11 @@ func (k8s *Kubernetes) GetJobSpec() (*v1.Job, error) {
 		}
 	} else {
 		if marshaledContainers, err := json.Marshal(currentPod.Spec.Containers); err == nil {
-			json.Unmarshal(marshaledContainers, &k8sJob.Spec.Template.Spec.Containers)
+			json.Unmarshal(marshaledContainers, k8sJob.Spec.Template.Spec.Containers)
 		}
 
 		if marshaledVolumes, err := json.Marshal(currentPod.Spec.Volumes); err == nil {
-			json.Unmarshal(marshaledVolumes, &k8sJob.Spec.Template.Spec.Volumes)
+			json.Unmarshal(marshaledVolumes, k8sJob.Spec.Template.Spec.Volumes)
 		}
 	}
 

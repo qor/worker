@@ -15,3 +15,34 @@ Worker.RegisterJob(&worker.Job{
   Handler: func(argument interface{}, qorJob worker.QorJobInterface) error {
 })
 ```
+
+## Advanced Usage
+
+
+```go
+kubernetesBackend, err := kubernetes.New(&kubernetes.Config{
+  Namespace: "namespace-used-to-run-job",
+  JobTemplate: `
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: jobname
+spec:
+  template:
+    spec:
+      containers:
+      - name: app
+        image: my_image
+        resources:
+          limits:
+            cpu: "750m"
+        env:
+          - name: DBHost
+            value: postgres.db.svc.cluster.local
+          - name: DBUser
+            value: qor
+          - name: DBPassword
+            value: qor
+`,
+})
+```
