@@ -169,7 +169,7 @@ func (k8s *Kubernetes) Kill(qorJob worker.QorJobInterface) error {
 	)
 
 	if err == nil {
-		return k8s.Clientset.Core().Pods(k8sJob.ObjectMeta.GetNamespace()).Delete(jobName, &metav1.DeleteOptions{})
+		_, err = k8s.Clientset.Batch().Jobs(k8sJob.ObjectMeta.GetNamespace()).Delete(jobName, &metav1.DeleteOptions{})
 	}
 	return err
 }
@@ -183,7 +183,7 @@ func (k8s *Kubernetes) Remove(qorJob worker.QorJobInterface) error {
 
 	if err == nil {
 		// TODO Don't remove if it is already running
-		return k8s.Clientset.Core().Pods(k8sJob.ObjectMeta.GetNamespace()).Delete(jobName, &metav1.DeleteOptions{})
+		_, err = k8s.Clientset.Batch().Jobs(k8sJob.ObjectMeta.GetNamespace()).Delete(jobName, &metav1.DeleteOptions{})
 	}
 	return err
 }
