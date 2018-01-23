@@ -27,11 +27,11 @@ For example:
 
 ```go
 func main() {
-	kubernetesBackend, err := kubernetes.New(&kubernetes.Config{
-		JobTemplateMaker: func(qorJob worker.QorJobInterface) string {
+  kubernetesBackend, err := kubernetes.New(&kubernetes.Config{
+    JobTemplateMaker: func(qorJob worker.QorJobInterface) string {
       // Job `process order` has higher priority than other jobs
-			if qorJob.GetJobName() == "process_order" {
-				return `
+      if qorJob.GetJobName() == "process_order" {
+        return `
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -44,9 +44,9 @@ spec:
         image: my_image
       priorityClassName: high-priority
 `
-			}
+      }
 
-			return `
+      return `
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -62,11 +62,11 @@ spec:
             cpu: "750m"
       priorityClassName: low-priority
 `
-		},
-	})
+    },
+  })
 
-	Worker := worker.New(&worker.Config{
-		Queue: kubernetesBackend,
-	})
+  Worker := worker.New(&worker.Config{
+    Queue: kubernetesBackend,
+  })
 }
 ```
