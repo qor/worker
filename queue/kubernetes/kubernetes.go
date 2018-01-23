@@ -27,9 +27,9 @@ type Kubernetes struct {
 
 // Config kubernetes config
 type Config struct {
-	Namespace     string
-	JobTemplate   string
-	ClusterConfig *rest.Config
+	Namespace        string
+	JobTemplateMaker func(worker.QorJobInterface) string
+	ClusterConfig    *rest.Config
 }
 
 // New initialize Kubernetes
@@ -74,7 +74,7 @@ func (k8s *Kubernetes) GetCurrentPod() *corev1.Pod {
 }
 
 // GetJobSpec get job spec
-func (k8s *Kubernetes) GetJobSpec() (*v1.Job, error) {
+func (k8s *Kubernetes) GetJobSpec(qorJob worker.QorJobInterface) (*v1.Job, error) {
 	var (
 		k8sJob     = &v1.Job{}
 		currentPod = k8s.GetCurrentPod()
@@ -85,8 +85,8 @@ func (k8s *Kubernetes) GetJobSpec() (*v1.Job, error) {
 		namespace = k8s.Config.Namespace
 	}
 
-	if k8s.Config.JobTemplate != "" {
-		if err := yaml.Unmarshal([]byte(k8s.Config.JobTemplate), k8sJob); err != nil {
+	if k8s.Config.JobTemplateMaker != nil {
+		if err := yaml.Unmarshal([]byte(k8s.Config.JobTemplateMaker(qorJob)), k8sJob); err != nil {
 			return nil, err
 		}
 		if k8sJob.ObjectMeta.Namespace != "" {
@@ -121,7 +121,7 @@ func (k8s *Kubernetes) GetJobSpec() (*v1.Job, error) {
 func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
 	var (
 		jobName        = fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
-		k8sJob, err    = k8s.GetJobSpec()
+		k8sJob, err    = k8s.GetJobSpec(qorJob)
 		currentPath, _ = os.Getwd()
 		binaryFile, _  = filepath.Abs(os.Args[0])
 	)
@@ -135,10 +135,10 @@ func (k8s *Kubernetes) Add(qorJob worker.QorJobInterface) error {
 		}
 
 		for idx, container := range k8sJob.Spec.Template.Spec.Containers {
-			if len(container.Command) == 0 || k8s.Config.JobTemplate == "" {
+			if len(container.Command) == 0 || k8s.Config.JobTemplateMaker == nil {
 				container.Command = []string{binaryFile, "--qor-job", qorJob.GetJobID()}
 			}
-			if container.WorkingDir == "" || k8s.Config.JobTemplate == "" {
+			if container.WorkingDir == "" || k8s.Config.JobTemplateMaker == nil {
 				container.WorkingDir = currentPath
 			}
 
@@ -164,7 +164,7 @@ func (k8s *Kubernetes) Run(qorJob worker.QorJobInterface) error {
 // Kill a job from k8s queue
 func (k8s *Kubernetes) Kill(qorJob worker.QorJobInterface) error {
 	var (
-		k8sJob, err = k8s.GetJobSpec()
+		k8sJob, err = k8s.GetJobSpec(qorJob)
 		jobName     = fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
 	)
 
@@ -177,7 +177,7 @@ func (k8s *Kubernetes) Kill(qorJob worker.QorJobInterface) error {
 // Remove a job from k8s queue
 func (k8s *Kubernetes) Remove(qorJob worker.QorJobInterface) error {
 	var (
-		k8sJob, err = k8s.GetJobSpec()
+		k8sJob, err = k8s.GetJobSpec(qorJob)
 		jobName     = fmt.Sprintf("qor-job-%v", qorJob.GetJobID())
 	)
 
