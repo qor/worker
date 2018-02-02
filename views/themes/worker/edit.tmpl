@@ -36,7 +36,7 @@
               <span class="qor-worker--progress-status {{if eq $job.GetStatus "killed"}}highlight{{end}}">{{$job.GetStatus}}</span> (<span class="qor-worker--progress-value">{{$job.GetProgress}}</span>%)
             </p>
 
-            <div id="qor-worker--progress" class="mdl-progress mdl-js-progress{{if $job.GetResultsTable.TableCells}} has-errors-texts{{end}}"></div>
+            <div id="qor-worker--progress" data-progress={{$job.GetProgress}} class="mdl-progress mdl-js-progress{{if $job.GetResultsTable.TableCells}} has-errors-texts{{end}}"></div>
           </div>
 
           <div>
