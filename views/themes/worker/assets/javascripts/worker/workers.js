@@ -207,10 +207,15 @@
             let $html = $(html),
                 contentData = $html.find(CLASS_WORKER_PROGRESS).data(),
                 currentStatus = contentData.progress,
-                progressStatusStatus = contentData.status;
+                progressStatusStatus = contentData.status,
+                isNotNormalStatus = status.indexOf(progressStatusStatus) != -1;
 
             $progressValue.html(currentStatus);
             $progressStatusStatus.html(progressStatusStatus);
+
+            if (isNotNormalStatus) {
+                $progressStatusStatus.addClass('highlight');
+            }
 
             // set status progress
             document.querySelector('#qor-worker--progress').MaterialProgress.setProgress(currentStatus);
@@ -233,7 +238,7 @@
                 QorWorker.updateTableStatus(progressStatusStatus);
             }
 
-            if (currentStatus >= 100) {
+            if (currentStatus >= 100 || isNotNormalStatus) {
                 window.clearInterval(QorWorker.getWorkerProgressIntervId);
                 $('.qor-workers-abort').addClass('hidden');
                 $('.qor-workers-rerun').removeClass('hidden');

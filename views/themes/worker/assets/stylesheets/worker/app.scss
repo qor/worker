@@ -10,18 +10,18 @@
     }
     .workers-label-title {
         font-size: 12px;
-        color: rgba(0, 0, 0, .54);
+        color: rgba(0, 0, 0, 0.54);
         font-weight: 500;
         margin: 0;
     }
-    [data-toggle="qor.workers"] {
-        >div {
+    [data-toggle='qor.workers'] {
+        > div {
             margin: 16px 0 8px;
         }
     }
 }
 
-[data-toggle="qor.workers"] {
+[data-toggle='qor.workers'] {
     .qor-button--back {
         font-size: 14px;
         color: #03a9f4;
@@ -58,11 +58,11 @@
                     font-size: 16px;
                     margin-bottom: 16px;
                 }
-                >h5 {
+                > h5 {
                     display: none;
                 }
             }
-            >h5 {
+            > h5 {
                 font-size: 16px;
                 line-height: 1;
                 margin: 24px 0 10px 0;
@@ -95,7 +95,7 @@
     .workers-log-output {
         background-color: #222;
         color: #fff;
-        font-family: "menlo", "Roboto", "Helvetica", "Arial", sans-serif;
+        font-family: 'menlo', 'Roboto', 'Helvetica', 'Arial', sans-serif;
         height: 300px;
         padding: 8px;
         overflow: auto;
@@ -125,6 +125,10 @@
         .workers-label-content {
             float: left;
             width: 105px;
+            .highlight {
+                font-weight: 600;
+                color: #ff4081;
+            }
         }
         .mdl-progress {
             float: left;
@@ -132,7 +136,7 @@
             width: calc(100% - 105px);
             &.has-errors-texts {
                 width: calc(100% - 262px);
-                &+a {
+                & + a {
                     display: inline-block;
                     margin: 3px 0 0 20px;
                     text-transform: uppercase;
