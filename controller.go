@@ -2,6 +2,7 @@ package worker
 
 import (
 	"errors"
+	"html/template"
 	"net/http"
 
 	"github.com/qor/admin"
@@ -108,13 +109,31 @@ func (wc workerController) RunJob(context *admin.Context) {
 }
 
 func (wc workerController) KillJob(context *admin.Context) {
-	if qorJob, err := wc.Worker.GetJob(context.ResourceID); err == nil {
-		if context.AddError(wc.Worker.KillJob(qorJob.GetJobID())); !context.HasError() {
-			context.Flash(string(context.Admin.T(context.Context, "qor_worker.form.successfully_killed", "{{.Name}} was successfully killed", wc.JobResource)), "success")
+	var msg template.HTML
+	qorJob, err := wc.Worker.GetJob(context.ResourceID)
+
+	if err == nil {
+		if err = wc.Worker.KillJob(qorJob.GetJobID()); err == nil {
+			msg = context.Admin.T(context.Context, "qor_worker.form.successfully_killed", "{{.Name}} was successfully killed", wc.JobResource)
 		} else {
-			context.Flash(string(context.Admin.T(context.Context, "qor_worker.form.failed_to_kill", "Failed to kill job {{.Name}}", wc.JobResource)), "error")
+			msg = context.Admin.T(context.Context, "qor_worker.form.failed_to_kill", "Failed to kill job {{.Name}}", wc.JobResource)
 		}
 	}
 
-	http.Redirect(context.Writer, context.Request, context.Request.URL.Path, http.StatusFound)
+	if err == nil {
+		responder.With("html", func() {
+			context.Flash(string(msg), "success")
+			http.Redirect(context.Writer, context.Request, context.Request.URL.Path, http.StatusFound)
+		}).With("json", func() {
+			context.JSON("ok", map[string]interface{}{"message": msg})
+		}).Respond(context.Request)
+	} else {
+		responder.With("html", func() {
+			context.Flash(string(msg), "error")
+			http.Redirect(context.Writer, context.Request, context.Request.URL.Path, http.StatusFound)
+		}).With("json", func() {
+			context.Writer.WriteHeader(422)
+			context.JSON("index", map[string]interface{}{"errors": []error{err}})
+		})
+	}
 }
