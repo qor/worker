@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
+
+	"github.com/qor/admin"
+	"github.com/qor/qor/resource"
 )
 
 // Frequencier frequencier interface
@@ -46,4 +49,11 @@ func (frequency Frequency) Value() (driver.Value, error) {
 // GetFrequency get frequency
 func (frequency Frequency) GetFrequency() *Frequency {
 	return &frequency
+}
+
+// ConfigureQorMeta configure qor meta
+func (frequency Frequency) ConfigureQorMeta(metaor resource.Metaor) {
+	if meta, ok := metaor.(*admin.Meta); ok {
+		meta.Type = "frequency"
+	}
 }
