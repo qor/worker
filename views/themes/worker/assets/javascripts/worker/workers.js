@@ -26,7 +26,10 @@
         CLASS_SELECT = '.is-selected';
 
     function updateProgress(progress) {
-        document.querySelector('#qor-worker--progress').MaterialProgress.setProgress(progress);
+        let $progress = document.querySelector('#qor-worker--progress');
+        if ($progress) {
+            document.querySelector('#qor-worker--progress').MaterialProgress.setProgress(progress);
+        }
     }
 
     function QorWorker(element, options) {
