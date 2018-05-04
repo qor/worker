@@ -106,6 +106,16 @@ func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resource
 					return db.Where("kind IS NULL")
 				}
 
+				{
+					var jobNames []string
+					for _, job := range worker.Jobs {
+						jobNames = append(jobNames, job.Name)
+					}
+					if len(jobNames) > 0 {
+						return db.Where("kind IN (?)", jobNames)
+					}
+				}
+
 				return db
 			},
 			Default: true,
