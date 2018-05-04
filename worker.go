@@ -241,7 +241,7 @@ func (worker *Worker) AddJob(qorJob QorJobInterface) error {
 func (worker *Worker) RunJob(jobID string) error {
 	qorJob, err := worker.GetJob(jobID)
 
-	if err == nil {
+	if qorJob != nil && err == nil {
 		defer func() {
 			if r := recover(); r != nil {
 				qorJob.AddLog(string(debug.Stack()))
