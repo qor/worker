@@ -163,7 +163,7 @@ func (worker *Worker) ConfigureQorResource(res resource.Resourcer) {
 		}
 
 		// register view funcmaps
-		worker.Admin.RegisterFuncMap("get_grouped_jobs", func(context *admin.Context) map[string][]*Job {
+		worker.Admin.RegisterFuncMap("get_grouped_jobs", func(worker *Worker, context *admin.Context) map[string][]*Job {
 			var groupedJobs = map[string][]*Job{}
 			var groupName = context.Request.URL.Query().Get("group")
 			var jobName = context.Request.URL.Query().Get("job")

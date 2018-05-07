@@ -1,6 +1,6 @@
 {{$resource := .Resource}}
 {{$worker := .Result}}
-{{$grouped_jobs := (get_grouped_jobs .)}}
+{{$grouped_jobs := (get_grouped_jobs $worker .)}}
 
 <div class="qor-page__body">
   {{render "shared/flashes"}}
@@ -13,8 +13,7 @@
       </a>
       <ul class="qor-worker-form">
       {{range $title, $jobs := $grouped_jobs}}
-
-      {{$show_form := (and (eq (len $grouped_jobs) 1) (eq (len $jobs) 1))}}
+        {{$show_form := (and (eq (len $grouped_jobs) 1) (eq (len $jobs) 1))}}
         <li {{if $show_form}}class="qor-worker-form--show"{{end}}>
           {{if $title}}
             <h5>{{t (print "qor_worker.job_groups." $title) $title}}</h5>
@@ -33,7 +32,6 @@
                   <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t (print "qor_worker.jobs." $job.Name) $job.Name}}</button>
                   {{if not $show_form}}<a class="mdl-button mdl-button--primary qor-button--back fr">{{t "qor_admin.form.cancel" "Cancel"}}</a>{{end}}
                 </div>
-
               </form>
             </div>
           {{end}}
