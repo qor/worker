@@ -19,10 +19,17 @@
         <div class="qor-workers-abort">
           <form action={{url_for $job .Resource}} method="POST">
             <input type="hidden" name="_method" value="PUT"/>
+
             {{render_form $job (new_sections $job.GetJob.Worker.JobResource)}}
+
             <div class="qor-form__actions">
-              <button type="submit" class="mdl-button mdl-button--colored mdl-button--raised">{{t "qor_worker.jobs.update_scheduled_job" "Update Scheduled Job"}}</button>
-              <button type="button" class="mdl-button mdl-button--colored mdl-button--raised qor-button--accent" data-ajax-form="true" data-url="{{url_for $job .Resource}}" data-confirm="{{t "qor_worker.confirm.are_you_sure" "Are You Sure?"}}" data-confirm-ok="{{t "qor_worker.jobs.cancel_scheduled_job" "Cancel Scheduled Job"}}" data-confirm-cancel="{{t "qor_worker.confirm.cancel" "cancel"}}" data-method="DELETE">{{t "qor_worker.jobs.cancel_scheduled_job" "Cancel Scheduled Job"}}</button>
+              <button type="submit" class="mdl-button mdl-button--colored mdl-button--raised">
+                {{t "qor_worker.jobs.update_scheduled_job" "Update Scheduled Job"}}
+              </button>
+
+              <button type="button" class="mdl-button mdl-button--colored mdl-button--raised qor-button--accent" data-ajax-form="true" data-url="{{url_for $job .Resource}}" data-confirm="{{t "qor_worker.confirm.are_you_sure" "Are You Sure?"}}" data-confirm-ok="{{t "qor_worker.jobs.cancel_scheduled_job" "Cancel Scheduled Job"}}" data-confirm-cancel="{{t "qor_worker.confirm.cancel" "cancel"}}" data-method="DELETE">
+                {{t "qor_worker.jobs.cancel_scheduled_job" "Cancel Scheduled Job"}}
+              </button>
             </div>
           </form>
         </div>
@@ -81,11 +88,15 @@
           {{if has_update_permission .Resource}}
             <div class="qor-workers-buttons">
               <div class="qor-workers-abort{{if (or (eq $job.GetStatus "new") (eq $job.GetStatus "running"))}} show{{else}} hidden{{end}}">
-                <button type="button" class="mdl-button mdl-button--colored mdl-button--raised qor-button--accent" data-ajax-form="true" data-url="{{url_for $job .Resource}}" data-confirm="{{t "qor_worker.confirm.are_you_sure" "Are You Sure?"}}" data-confirm-ok="{{t "qor_worker.jobs.abort_job" "Abort Job"}}" data-confirm-cancel="{{t "qor_worker.confirm.cancel" "cancel"}}" data-method="DELETE">{{t "qor_worker.jobs.abort_job" "Abort Job"}}</button>
+                <button type="button" class="mdl-button mdl-button--colored mdl-button--raised qor-button--accent" data-ajax-form="true" data-url="{{url_for $job .Resource}}" data-confirm="{{t "qor_worker.confirm.are_you_sure" "Are You Sure?"}}" data-confirm-ok="{{t "qor_worker.jobs.abort_job" "Abort Job"}}" data-confirm-cancel="{{t "qor_worker.confirm.cancel" "cancel"}}" data-method="DELETE">
+                  {{t "qor_worker.jobs.abort_job" "Abort Job"}}
+                </button>
               </div>
 
               <div class="qor-workers-rerun{{if (eq $job.GetStatus "done")}} show{{else}} hidden{{end}}">
-                <button type="button" class="mdl-button mdl-button--colored mdl-button--raised" data-ajax-form="true" data-url="{{join_url (url_for $job .Resource) "/run"}}" data-confirm="{{t "qor_worker.confirm.are_you_sure" "Are You Sure?"}}" data-confirm-ok="{{t "qor_worker.jobs.rerun_job" "Rerun Job"}}" data-confirm-cancel="{{t "qor_worker.confirm.cancel" "cancel"}}" data-method="POST">{{t "qor_worker.jobs.rerun_job" "Rerun Job"}}</button>
+                <button type="button" class="mdl-button mdl-button--colored mdl-button--raised" data-ajax-form="true" data-url="{{join_url (url_for $job .Resource) "/run"}}" data-confirm="{{t "qor_worker.confirm.are_you_sure" "Are You Sure?"}}" data-confirm-ok="{{t "qor_worker.jobs.rerun_job" "Rerun Job"}}" data-confirm-cancel="{{t "qor_worker.confirm.cancel" "cancel"}}" data-method="POST">
+                  {{t "qor_worker.jobs.rerun_job" "Rerun Job"}}
+                </button>
               </div>
             </div>
           {{end}}
