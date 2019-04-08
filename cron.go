@@ -142,8 +142,13 @@ func (cron *Cron) Run(qorJob QorJobInterface) error {
 
 			qorJob.SetProgressText(fmt.Sprintf("Worker killed by signal %s", i.String()))
 			qorJob.SetStatus(JobStatusKilled)
+
+			qorJob.StopReferesh()
 			os.Exit(int(reflect.ValueOf(i).Int()))
 		}()
+
+		qorJob.StartReferesh()
+		defer qorJob.StopReferesh()
 
 		err := job.Handler(qorJob.GetSerializableArgument(qorJob), qorJob)
 		if err == nil {
