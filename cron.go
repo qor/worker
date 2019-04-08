@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -127,6 +130,21 @@ func (cron *Cron) Run(qorJob QorJobInterface) error {
 	job := qorJob.GetJob()
 
 	if job.Handler != nil {
+		go func() {
+			sigint := make(chan os.Signal, 1)
+
+			// interrupt signal sent from terminal
+			signal.Notify(sigint, syscall.SIGINT)
+			// sigterm signal sent from kubernetes
+			signal.Notify(sigint, syscall.SIGTERM)
+
+			i := <-sigint
+
+			qorJob.SetProgressText(fmt.Sprintf("Worker killed by signal %s", i.String()))
+			qorJob.SetStatus(JobStatusKilled)
+			os.Exit(int(reflect.ValueOf(i).Int()))
+		}()
+
 		err := job.Handler(qorJob.GetSerializableArgument(qorJob), qorJob)
 		if err == nil {
 			cron.parseJobs()
