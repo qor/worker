@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
@@ -31,6 +33,9 @@ type QorJobInterface interface {
 	AddLog(string) error
 	GetResultsTable() ResultsTable
 	AddResultsRow(...TableCell) error
+
+	StartReferesh()
+	StopReferesh()
 
 	GetArgument() interface{}
 	serializable_meta.SerializableMetaInterface
@@ -77,6 +82,9 @@ type QorJob struct {
 
 	mutex sync.Mutex `sql:"-"`
 
+	stopReferesh bool `sql:"-"`
+	inReferesh   bool `sql:"-"`
+
 	// Add `valid:"-"`` to make the QorJob work well with qor/validations
 	// When the qor/validations auto exec the validate struct callback we get error
 	// runtime: goroutine stack exceeds 1000000000-byte limit
@@ -107,12 +115,67 @@ func (job *QorJob) SetStatus(status string) error {
 	job.mutex.Lock()
 	defer job.mutex.Unlock()
 
-	worker := job.GetJob().Worker
-	context := worker.Admin.NewContext(nil, nil).Context
 	job.Status = status
 	if status == JobStatusDone {
 		job.Progress = 100
 	}
+
+	if job.shouldCallSave() {
+		return job.callSave()
+	}
+
+	return nil
+}
+
+func (job *QorJob) shouldCallSave() bool {
+	return !job.inReferesh || job.stopReferesh
+}
+
+func (job *QorJob) StartReferesh() {
+	job.mutex.Lock()
+	defer job.mutex.Unlock()
+	if !job.inReferesh {
+		job.inReferesh = true
+		job.stopReferesh = false
+
+		go func() {
+			job.referesh()
+		}()
+	}
+}
+
+func (job *QorJob) StopReferesh() {
+	job.mutex.Lock()
+	defer job.mutex.Unlock()
+
+	err := job.callSave()
+	if err != nil {
+		log.Println(err)
+	}
+
+	job.stopReferesh = true
+}
+
+func (job *QorJob) referesh() {
+	job.mutex.Lock()
+	defer job.mutex.Unlock()
+
+	err := job.callSave()
+	if err != nil {
+		log.Println(err)
+	}
+
+	if job.stopReferesh {
+		job.inReferesh = false
+		job.stopReferesh = false
+	} else {
+		time.AfterFunc(5*time.Second, job.referesh)
+	}
+}
+
+func (job *QorJob) callSave() error {
+	worker := job.GetJob().Worker
+	context := worker.Admin.NewContext(nil, nil).Context
 	return worker.JobResource.CallSave(job, context)
 }
 
@@ -153,13 +216,16 @@ func (job *QorJob) SetProgress(progress uint) error {
 	job.mutex.Lock()
 	defer job.mutex.Unlock()
 
-	worker := job.GetJob().Worker
-	context := worker.Admin.NewContext(nil, nil).Context
 	if progress > 100 {
 		progress = 100
 	}
 	job.Progress = progress
-	return worker.JobResource.CallSave(job, context)
+
+	if job.shouldCallSave() {
+		return job.callSave()
+	}
+
+	return nil
 }
 
 // GetProgressText get qor job's progress text
@@ -172,10 +238,12 @@ func (job *QorJob) SetProgressText(str string) error {
 	job.mutex.Lock()
 	defer job.mutex.Unlock()
 
-	worker := job.GetJob().Worker
-	context := worker.Admin.NewContext(nil, nil).Context
 	job.ProgressText = str
-	return worker.JobResource.CallSave(job, context)
+	if job.shouldCallSave() {
+		return job.callSave()
+	}
+
+	return nil
 }
 
 // GetLogs get qor job's logs
@@ -188,11 +256,13 @@ func (job *QorJob) AddLog(log string) error {
 	job.mutex.Lock()
 	defer job.mutex.Unlock()
 
-	worker := job.GetJob().Worker
-	context := worker.Admin.NewContext(nil, nil).Context
 	fmt.Println(log)
 	job.Log += "\n" + log
-	return worker.JobResource.CallSave(job, context)
+	if job.shouldCallSave() {
+		return job.callSave()
+	}
+
+	return nil
 }
 
 // GetResultsTable get the job's process logs
@@ -205,8 +275,10 @@ func (job *QorJob) AddResultsRow(cells ...TableCell) error {
 	job.mutex.Lock()
 	defer job.mutex.Unlock()
 
-	worker := job.GetJob().Worker
-	context := worker.Admin.NewContext(nil, nil).Context
 	job.ResultsTable.TableCells = append(job.ResultsTable.TableCells, cells)
-	return worker.JobResource.CallSave(job, context)
+	if job.shouldCallSave() {
+		return job.callSave()
+	}
+
+	return nil
 }
