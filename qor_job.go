@@ -120,11 +120,15 @@ func (job *QorJob) SetStatus(status string) error {
 		job.Progress = 100
 	}
 
-	if !job.inReferesh {
+	if job.shouldCallSave() {
 		return job.callSave()
 	}
 
 	return nil
+}
+
+func (job *QorJob) shouldCallSave() bool {
+	return !job.inReferesh || job.stopReferesh
 }
 
 func (job *QorJob) StartReferesh() {
@@ -217,7 +221,7 @@ func (job *QorJob) SetProgress(progress uint) error {
 	}
 	job.Progress = progress
 
-	if !job.inReferesh {
+	if job.shouldCallSave() {
 		return job.callSave()
 	}
 
@@ -235,7 +239,7 @@ func (job *QorJob) SetProgressText(str string) error {
 	defer job.mutex.Unlock()
 
 	job.ProgressText = str
-	if !job.inReferesh {
+	if job.shouldCallSave() {
 		return job.callSave()
 	}
 
@@ -254,7 +258,7 @@ func (job *QorJob) AddLog(log string) error {
 
 	fmt.Println(log)
 	job.Log += "\n" + log
-	if !job.inReferesh {
+	if job.shouldCallSave() {
 		return job.callSave()
 	}
 
@@ -272,7 +276,7 @@ func (job *QorJob) AddResultsRow(cells ...TableCell) error {
 	defer job.mutex.Unlock()
 
 	job.ResultsTable.TableCells = append(job.ResultsTable.TableCells, cells)
-	if !job.inReferesh {
+	if job.shouldCallSave() {
 		return job.callSave()
 	}
 
