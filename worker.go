@@ -266,6 +266,9 @@ func (worker *Worker) RunJob(jobID string) error {
 
 		if err = qorJob.SetStatus(JobStatusRunning); err == nil {
 			if err = qorJob.GetJob().GetQueue().Run(qorJob); err == nil {
+				if len(qorJob.GetResultsTable().TableCells) > 0 {
+					return qorJob.SetStatus(JobStatusException)
+				}
 				return qorJob.SetStatus(JobStatusDone)
 			}
 
