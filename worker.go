@@ -78,6 +78,7 @@ func (worker *Worker) ConfigureQorResourceBeforeInitialize(res resource.Resource
 		}})
 		worker.JobResource.IndexAttrs("ID", "Name", "Status", "CreatedAt")
 		worker.JobResource.Name = res.Name
+		worker.JobResource.Permission = res.Permission
 
 		for _, status := range []string{JobStatusScheduled, JobStatusNew, JobStatusRunning, JobStatusDone, JobStatusException} {
 			var status = status
